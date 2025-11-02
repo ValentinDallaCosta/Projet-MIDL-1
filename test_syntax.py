@@ -41,8 +41,6 @@ f10 = exq("y", eqf("x", "y"))
 print("Quantificateur existentiel :", f10)
 
 
-print("\nFormule (exemple du sujet) :")
-
 # Sans abrévation ∀x ∀y ∀z ∃u ((x < y ∧ x < z) ⇒ (y < u ∧ z < u))
 f = QuantifF(All(), "x" , 
          QuantifF(All(), "y" , 
@@ -66,8 +64,20 @@ f = allq("x",
         )
     )
 
-print("Formule :", f)
+print("\nFormule (exemple du sujet) :", f)
 
+# Autre exemple de formule : ∀x ∃y (x = y ∨ ¬(x < y))
+
+g = allq("x",
+        exq("y",
+            disj(
+                eqf("x", "y"),
+                NotF(ltf("x", "y"))
+            )
+        )
+    )
+
+print("\nAutre exemple de formule :", g)
 # Accès aux sous-formules
 
 print("\n=== Exploration de la structure ===")
@@ -109,8 +119,8 @@ test = conj(ConstF(True), ConstF(False))
 print("Formule originale :", test)
 print("Dual :", dual(test))
 
-#Pou nous aider à bien assimmiler le fonctionnement de la fonction dual, je la modifie pour qu'elle
-# prenne en compte les quantificateurs aussi en inversant les quantificateurs universels et existentiels.
+# Pour nous aider à bien assimmiler le fonctionnement de la fonction dual, on la modifie pour qu'elle
+# prenne en compte les quantificateurs et inverse les quantificateurs universels et existentiels.
 #Même si cela n'a pas de sens logique, ça nous permettra de bien comprendre le fonctionnement de la syntaxe.
 
 def dual2(f: Formula) -> Formula:
@@ -131,6 +141,65 @@ def dual2(f: Formula) -> Formula:
     else:
         raise ValueError("dual2: type non connu")
     
-print("Dual2 sur la formule du cours :", dual2(f))
+print("Dual2 sur la formule du sujet :", dual2(f))
+
+print("\n=== Fonction nnf et dnf ===")
+
+def nnf(f: Formula) -> Formula:
+    """Retourne la forme normale négative de la formule f sans quantificateur."""
+    if isinstance(f, ConstF) or isinstance(f, ComparF):
+        return f
+    elif isinstance(f, QuantifF): # on ignore les quantificateurs pour cette fonction
+        return nnf(f.body)
+    elif isinstance(f, NotF):
+        sub = f.sub
+        if isinstance(sub, ConstF):
+            return ConstF(not sub.val)
+        elif isinstance(sub, ComparF):
+            # Négation d'une comparaison
+            if isinstance(sub.op, Eq):
+                return BoolOpF(ComparF(sub.left, Lt(), sub.right), Disj(), ComparF(sub.right, Lt(), sub.left))
+            elif isinstance(sub.op, Lt):
+                return BoolOpF(ComparF(sub.right, Lt(), sub.left), Disj(), ComparF(sub.left, Eq(), sub.right))
+        elif isinstance(sub, NotF):
+            return nnf(sub.sub)
+        elif isinstance(sub, BoolOpF):
+            if isinstance(sub.op, Conj):
+                return disj(nnf(NotF(sub.left)), nnf(NotF(sub.right)))
+            elif isinstance(sub.op, Disj):
+                return conj(nnf(NotF(sub.left)), nnf(NotF(sub.right)))
+    elif isinstance(f, BoolOpF):
+        return BoolOpF(nnf(f.left), f.op, nnf(f.right))
+    else:
+        raise ValueError("nnf: type non connu")
+
+n1 = NotF(ConstF(True))
+n2 = NotF(conj(ComparF("x", Eq(), "y"), ComparF("y", Eq(), "z")))
+n3 = NotF(eqf("x", "y"))
+n4 = conj(NotF(ConstF(False)), 
+          disj(ComparF("x", Eq(), "y"), ConstF(True)))
+
+print("test nnf :",n1,"->",nnf(n1))
+print("test nnf :",n2,"->",nnf(n2))
+print("test nnf :",n3,"->",nnf(n3))
+print("test nnf :",n4,"->",nnf(n4))
+print("nnf sur la formule du sujet sans quatificateur:", nnf(f))
+
+def dnf(f: Formula) -> Formula:
+    """Retourne la forme normale disjonctive de la formule f sans quantificateur."""
+    return nnf(f)  # 
+    
+
+d1 = NotF(ConstF(True))
+d2 = NotF(conj(ComparF("x", Eq(), "y"), ComparF("y", Eq(), "z")))
+d3 = NotF(eqf("x", "y"))
+d4 = conj(NotF(ConstF(False)), 
+          disj(ComparF("x", Eq(), "y"), ConstF(True)))
+
+print("test dnf :",d1,"->",dnf(d1))
+print("test dnf :",d2,"->",dnf(d2))     
+print("test dnf :",d3,"->",dnf(d3))
+print("test dnf :",d4,"->",dnf(d4))
+print("dnf sur la formule du sujet sans quatificateur:", dnf(f))
 
 print("\n=== Fin des tests ===")
