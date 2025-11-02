@@ -187,16 +187,33 @@ print("nnf sur la formule du sujet sans quatificateur:", nnf(f))
 
 def dnf(f: Formula) -> Formula:
     """Retourne la forme normale disjonctive de la formule f sans quantificateur."""
-    return nnf(f)  # 
+    f_nnf = nnf(f)
+    
+    if isinstance(f_nnf, ConstF) or isinstance(f_nnf, ComparF):
+        return f_nnf
+    elif isinstance(f_nnf, BoolOpF):
+        if isinstance(f_nnf.op, Disj):
+            return disj(dnf(f_nnf.left), dnf(f_nnf.right))
+        elif isinstance(f_nnf.op, Conj):
+            left_dnf = dnf(f_nnf.left)
+            right_dnf = dnf(f_nnf.right)
+            if isinstance(left_dnf, BoolOpF) and isinstance(left_dnf.op, Disj):
+                return disj(dnf(conj(left_dnf.left, right_dnf)), dnf(conj(left_dnf.right, right_dnf)))
+            elif isinstance(right_dnf, BoolOpF) and isinstance(right_dnf.op, Disj):
+                return disj(dnf(conj(left_dnf, right_dnf.left)), dnf(conj(left_dnf, right_dnf.right)))
+            else:
+                return conj(left_dnf, right_dnf)
+    else:
+        raise ValueError("dnf: type non connu")
     
 
 d1 = NotF(ConstF(True))
-d2 = NotF(conj(ComparF("x", Eq(), "y"), ComparF("y", Eq(), "z")))
+d2 = NotF(disj(ComparF("x", Eq(), "y"), ComparF("y", Eq(), "z")))
 d3 = NotF(eqf("x", "y"))
 d4 = conj(NotF(ConstF(False)), 
           disj(ComparF("x", Eq(), "y"), ConstF(True)))
 
-print("test dnf :",d1,"->",dnf(d1))
+print("\ntest dnf :",d1,"->",dnf(d1))
 print("test dnf :",d2,"->",dnf(d2))     
 print("test dnf :",d3,"->",dnf(d3))
 print("test dnf :",d4,"->",dnf(d4))
