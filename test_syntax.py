@@ -151,28 +151,28 @@ def nnf(f: Formula) -> Formula:
         return f
     elif isinstance(f, QuantifF): # on ignore les quantificateurs pour cette fonction
         return nnf(f.body)
-    elif isinstance(f, NotF):
+    elif isinstance(f, NotF): # on traite la négation
         sub = f.sub
-        if isinstance(sub, ConstF):
+        if isinstance(sub, ConstF): # Négation d'une constante
             return ConstF(not sub.val)
-        elif isinstance(sub, ComparF):
-            # Négation d'une comparaison
-            if isinstance(sub.op, Eq):
+        elif isinstance(sub, ComparF):  # Négation d'une comparaison
+            if isinstance(sub.op, Eq): # Egalité devient deux inégalités
                 return BoolOpF(ComparF(sub.left, Lt(), sub.right), Disj(), ComparF(sub.right, Lt(), sub.left))
-            elif isinstance(sub.op, Lt):
+            elif isinstance(sub.op, Lt): # Inégalité devient égalité ou inverse de l'inégalité
                 return BoolOpF(ComparF(sub.right, Lt(), sub.left), Disj(), ComparF(sub.left, Eq(), sub.right))
-        elif isinstance(sub, NotF):
+        elif isinstance(sub, NotF): # Double négation, on simplifie
             return nnf(sub.sub)
-        elif isinstance(sub, BoolOpF):
-            if isinstance(sub.op, Conj):
+        elif isinstance(sub, BoolOpF): # Négation d'une opération booléenne
+            if isinstance(sub.op, Conj): # OU devient ET
                 return disj(nnf(NotF(sub.left)), nnf(NotF(sub.right)))
-            elif isinstance(sub.op, Disj):
+            elif isinstance(sub.op, Disj): # ET devient OU
                 return conj(nnf(NotF(sub.left)), nnf(NotF(sub.right)))
-    elif isinstance(f, BoolOpF):
+    elif isinstance(f, BoolOpF): # recursivité sur les termes gauche et droite si pas de négation
         return BoolOpF(nnf(f.left), f.op, nnf(f.right))
     else:
         raise ValueError("nnf: type non connu")
 
+# Tests de nnf
 n1 = NotF(ConstF(True))
 n2 = NotF(conj(ComparF("x", Eq(), "y"), ComparF("y", Eq(), "z")))
 n3 = NotF(eqf("x", "y"))
@@ -189,12 +189,12 @@ def dnf(f: Formula) -> Formula:
     """Retourne la forme normale disjonctive de la formule f sans quantificateur."""
     f_nnf = nnf(f)
     
-    if isinstance(f_nnf, ConstF) or isinstance(f_nnf, ComparF):
+    if isinstance(f_nnf, ConstF) or isinstance(f_nnf, ComparF): 
         return f_nnf
     elif isinstance(f_nnf, BoolOpF):
-        if isinstance(f_nnf.op, Disj):
+        if isinstance(f_nnf.op, Disj): # on distribue la disjonction
             return disj(dnf(f_nnf.left), dnf(f_nnf.right))
-        elif isinstance(f_nnf.op, Conj):
+        elif isinstance(f_nnf.op, Conj): # on distribue la conjonction
             left_dnf = dnf(f_nnf.left)
             right_dnf = dnf(f_nnf.right)
             if isinstance(left_dnf, BoolOpF) and isinstance(left_dnf.op, Disj):
@@ -206,7 +206,7 @@ def dnf(f: Formula) -> Formula:
     else:
         raise ValueError("dnf: type non connu")
     
-
+# Tests de dnf
 d1 = NotF(ConstF(True))
 d2 = NotF(disj(ComparF("x", Eq(), "y"), ComparF("y", Eq(), "z")))
 d3 = NotF(eqf("x", "y"))
