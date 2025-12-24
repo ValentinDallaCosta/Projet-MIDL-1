@@ -1,7 +1,5 @@
 from syntax import *
 
-
-
 # Fonction récursive simple : inversion des opérateurs
 def dualOp(op: BoolOp) -> BoolOp:
     """Transforme les opérateurs ET en OU"""
@@ -22,8 +20,6 @@ def dual(f: Formula) -> Formula:
         return BoolOpF(dual(f.left), dualOp(f.op), dual(f.right)) # on inverse l'opérateur et on applique dual aux sous-formules
     else:
         raise ValueError("dual applied to quantified formula") # on ne prend pas en charge les quantificateurs
-
-
 
 # Pour nous aider à bien assimmiler le fonctionnement de la fonction dual, on la modifie pour qu'elle
 # prenne en compte les quantificateurs et inverse les quantificateurs universels et existentiels.
@@ -46,10 +42,6 @@ def dual2(f: Formula) -> Formula:
             return QuantifF(All(), f.var, dual2(f.body)) # on inverse le quantificateur et on applique dual2 à la sous-formule
     else:
         raise ValueError("dual2: type non connu")
-    
-
-
-
 
 
 def nnf(f: Formula) -> Formula:
@@ -80,7 +72,6 @@ def nnf(f: Formula) -> Formula:
         raise ValueError("nnf: type non connu")
 
 
-
 def dnf(f: Formula) -> Formula:
     """Retourne la forme normale disjonctive de la formule f sans quantificateur."""
     f_nnf = nnf(f)
@@ -101,5 +92,71 @@ def dnf(f: Formula) -> Formula:
                 return conj(left_dnf, right_dnf)
     else:
         raise ValueError("dnf: type non connu")
+     
+
+
+#Fonctions permettant de vérifier les hypothèse pour la procédure de décision
+
+def freeVar(f: Formula, bound_vars=None) -> list:
+    """Retourne la liste (éventuellement vide) des variables libres de la formule f."""
+    if bound_vars is None:
+        bound_vars = set()
+
+    if isinstance(f, QuantifF):
+        return freeVar(f.body, bound_vars | {f.var})
+    elif isinstance(f, NotF):
+        return freeVar(f.sub, bound_vars)
+    elif isinstance(f, BoolOpF):
+        left_free = set(freeVar(f.left, bound_vars))
+        right_free = set(freeVar(f.right, bound_vars))
+        return sorted(list(left_free | right_free))
+    elif isinstance(f, ComparF):
+        free = set()
+        # on suppose que left/right sont des identifiants (str) représentant des variables
+        if isinstance(f.left, str) and (f.left not in bound_vars):
+            free.add(f.left)
+        if isinstance(f.right, str) and (f.right not in bound_vars):
+            free.add(f.right)
+        return sorted(list(free))
+    elif isinstance(f, ConstF):
+        return []
+    else:
+        raise ValueError("isClose: type non connu")
+    
+def isClose(f: Formula) -> bool:
+    """Vérifie si une formule est close (sans variable libre)."""
+    free_vars = freeVar(f)
+    return len(free_vars) == 0
+
+def toClose(f: Formula) -> Formula:
+    """Retourne une formule close en préfixant des quantificateurs universels
+    pour chaque variable libre trouvée."""
+
+    free_vars = freeVar(f)
+    if not free_vars:
+        return f
+    # Préfixe les quantificateurs universels dans un ordre déterministe
+    for v in free_vars:
+        f = QuantifF(All(), v, f)
+    return f
+
+def isJustSymboleRelationnel(f: Formula) -> bool:
+    """Vérifie si une formule est constituée uniquement de symboles relationnels."""
+    if isinstance(f, ComparF):
+        return True
+    elif isinstance(f, NotF):
+        return isJustSymboleRelationnel(f.sub)
+    elif isinstance(f, BoolOpF):
+        return isJustSymboleRelationnel(f.left) and isJustSymboleRelationnel(f.right)
+    else:
+        return False
+    
+def isElimPossible(f: Formula) -> bool:
+    """Vérifie si une formule est éligible à l'élimination des quantificateurs."""
+    if not(isClose(f)):
+        return False
+    if not(isJustSymboleRelationnel(f)):
+        return False
+    return True
 
 

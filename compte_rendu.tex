@@ -1,0 +1,179 @@
+\documentclass[12pt,a4paper]{article}
+
+% --- Packages de base ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{xcolor}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+
+% --- Mise en page des titres (Couleur et Soulignement) ---
+\usepackage{titlesec}
+\usepackage{ulem}
+
+\definecolor{myblue}{RGB}{0, 51, 153}
+
+\titleformat{\section}
+  {\color{myblue}\normalfont\Large\bfseries\fillast}
+  {\thesection}{1em}{\uline}
+
+\titleformat{\subsection}
+  {\color{myblue}\normalfont\large\bfseries}
+  {\thesubsection}{1em}{\uline}
+
+% --- Configuration pour le code Python ---
+\usepackage{listings}
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{green!50!black},
+    breaklines=true,
+    frame=single,
+    showstringspaces=false
+}
+
+% --- Informations du document ---
+\title{Rapport de Projet MIDL 1 \\ \large Élimination de quantificateurs dans la théorie DO}
+\author{Votre Nom \& Nom de votre binôme}
+\date{Année 2025-2026}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+% Consigne : décrire le problème sans détails techniques, résumé du travail [cite: 61]
+\textit{Rédigez ici votre introduction (environ 1/3 ou 1/2 page). Expliquez que le projet porte sur l'implantation de la procédure d'élimination de quantificateurs pour la théorie des ordres denses (DO)[cite: 7, 8].}
+
+\vspace{1cm}
+\textbf{Statut du projet :}
+\begin{itemize}
+    \item Lot 1 (Obligatoire) : [En cours / Terminé]
+    \item Lot 2 (Arithmétique) : [À préciser]
+    \item Éléments non réalisés : [Lister ici les éventuelles difficultés rencontrées]
+\end{itemize}
+
+\section{Manuel d'utilisateur}
+% Consigne : comment utiliser votre code [cite: 62]
+Pour utiliser le programme, assurez-vous de posséder les fichiers \texttt{syntax.py} et \texttt{fonctions.py} dans le même répertoire.
+
+\begin{enumerate}
+    \item Lancez une console Python (REPL)[cite: 198].
+    \item Importez vos fonctions : \texttt{from fonctions import *}.
+    \item Définissez une formule en utilisant les constructeurs (ex: \texttt{f = ltf("x", "y")}).
+    \item Appliquez la fonction souhaitée : \texttt{print(dnf(f))}.
+\end{enumerate}
+
+\section{Description de l'implantation}
+
+\subsection{Représentation des données}
+
+[DÉTAILLEZ ICI vos choix de structures de données. Par exemple, comment vous passez d'une formule monolithique à une liste de clauses pour faciliter l'élimination des quantificateurs.]
+
+\subsection{Implantation de la procédure de décision}
+
+\subsubsection{Hypothèse}
+
+Pour l'implantation de la procédure de décision on a suivi les instructions de la partie A.2 du sujet. Donc tout d'abord nous avons dû émettre des hypothèses sur notre formule que nous avons traduit par des fonctions crées dans notre code.
+
+Celle-ci ne peuvent être exécutés seulement si la formule est close, c'est à dire sans variables libres et qu'elle est composé seulement de symboles relationnels (< et =). 
+Nous avons traduit cela dans le code par les fonctions \texttt{freeVar(f)}, \texttt{isClose(f)}, \texttt{toClose(f)}, \texttt{isJustSymboleRelationnel(f)} et \texttt{isElimPossible(f)} qui les utilisent. Toutes celles-ci sont décrite dans la partie \textbf{Analyse des fonctions}. 
+
+Une fois ces exigences satisfaites nous pouvons procéder à la démarche de décision :
+\begin{itemize}
+    \item Tout d'abord nous devons convertir la formule en forme prénexe, pour cela nous avons créé la fonction \texttt{prenexe(f)}
+    \item Ensuite nous devons convertir les quantificateurs universels en existentiels en suivant la formule suivante : $\forall x. \varphi \leftrightarrow \neg (\exists x. \neg \varphi)$.
+    Pour cela nous avons la fonction \texttt{allToExist(f)}.
+    \item Puis pour finir nous pouvons éliminer les quantificateurs à partir de l'interieur.
+\end{itemize}
+
+\subsection{Analyse des fonctions}
+Voici la liste des fonctions actuellement implantées dans le fichier (\texttt{fonctions.py}) ainsi que leur fonctionnement :
+
+\subsubsection{Fonctions de base}
+\begin{itemize}
+    \item \textbf{dual(f)} : Parcourt récursivement l'arbre syntaxique pour inverser les opérateurs $\wedge$ et $\vee$.
+    \item \textbf{nnf(f)} : Transforme une formule en Forme Normale Négative en descendant les négations jusqu'aux comparaisons.
+    \item \textbf{dnf(f)} : Convertit la formule en Forme Normale Disjonctive en utilisant la distributivité.
+\end{itemize}
+
+\subsubsection{Fonctions d'aide pour la procédure de décision}
+\textbf{Fonctions de vérification des hypothèses :}
+\begin{itemize}
+    \item \textbf{isClose(f)} : Récupère la liste des variables libres avec \textbf{freeVar(f)}, s'il n'y en a pas alors la formule est close sinon elle ne l'est pas.
+    \item \textbf{toClose(f)} : Transforme une formule en formule close en ajoutant un quantificateur $\forall$ pour chaque variable libre.
+    \item \textbf{freeVar(f)} :  Parcourt récursivement l'arbre syntaxique en ajoutant les variables liées dans un ensemble quelle renvoie ensuite.
+\end{itemize}
+
+
+\section{Extensions (Lots 2 et 3)}
+% Consigne : sections supplémentaires pour les options 
+
+\subsection{Extension à l'arithmétique des rationnels (Lot 2)}
+[INSÉREZ ICI vos recherches théoriques sur l'isolation des variables dans les expressions linéaires de type $3*x - z < y$ (Tâche 4)[cite: 208, 210].]
+
+\subsection{Preuve constructive (Lot 3)}
+[INSÉREZ ICI votre réflexion sur la stratégie de jeu entre l'ordinateur et l'humain (Tâche 6)[cite: 226, 234].]
+
+\appendix
+\section{Code source (Extraits)}
+\begin{lstlisting}[caption={Extrait des fonctions de base}]
+def nnf(f: Formula) -> Formula:
+    # Retourne la forme normale négative
+    if isinstance(f, ConstF) or isinstance(f, ComparF):
+        return f
+    # ... (suite du code)
+\end{lstlisting}
+
+\subsection{Développement des nouvelles fonctions : Élimination de variable}
+
+L'étape cruciale du projet consiste à éliminer un quantificateur existentiel de type $\exists x. \phi$, où $\phi$ est une conjonction de littéraux (comparaisons). Cette étape repose sur l'idée que dans un ordre dense, l'existence de $x$ est garantie par les relations entre les bornes inférieures et supérieures.
+
+\subsubsection{Algorithme de suppression de variable}
+Pour supprimer la variable $x$ d'une conjonction de comparaisons, nous suivons la procédure suivante :
+\begin{enumerate}
+    \item \textbf{Filtrage :} On sépare les formules en trois ensembles :
+    \begin{itemize}
+        \item $L$ (Lower) : les éléments $a$ tels que $a < x$.
+        \item $U$ (Upper) : les éléments $b$ tels que $x < b$.
+        \item $R$ (Rest) : les formules ne contenant pas $x$.
+    \end{itemize}
+    \item \textbf{Combinaison :} La formule résultante est $\left( \bigwedge_{a \in L, b \in U} a < b \right) \wedge R$.
+\end{enumerate}
+
+\subsubsection{Fonctions à implanter}
+Voici les fonctions que nous avons prévues pour compléter le Lot 1 :
+
+\begin{itemize}
+    \item \texttt{collect\_bounds(f, x)} : Parcourt une conjonction et retourne les listes $L$ et $U$.
+    \item \texttt{remove\_quantifier(f)} : La fonction principale qui prend une formule $\exists x. \phi$, transforme $\phi$ en DNF, et applique l'élimination sur chaque clause.
+\end{itemize}
+
+\begin{lstlisting}[caption={Structure cible pour l'élimination de variable}]
+def solve_exists_x(conjunction, x):
+    """
+    Entree : Une liste de comparaisons (clause de DNF)
+    Sortie : Une nouvelle formule sans la variable x
+    """
+    lower_bounds = [] # Elements 'a' tels que a < x
+    upper_bounds = [] # Elements 'b' tels que x < b
+    others = []       # Formules sans x
+    
+    # 1. Analyse de la clause
+    # TODO: Parcourir conjunction et remplir les listes
+    
+    # 2. Generation des nouvelles contraintes (a < b)
+    new_constraints = []
+    for a in lower_bounds:
+        for b in upper_bounds:
+            new_constraints.append(ltf(a, b))
+            
+    # 3. Retourner la conjonction finale
+    # return conj_list(new_constraints + others)
+\end{lstlisting}
+
+\end{document}
