@@ -38,8 +38,8 @@
 
 % --- Informations du document ---
 \title{Rapport de Projet MIDL 1 \\ \large Élimination de quantificateurs dans la théorie DO}
-\author{Votre Nom \& Nom de votre binôme}
-\date{Année 2025-2026}
+\author{Dalla-Costa Valentin \& Elissalde Baptiste}
+\date{22407035 \& ...}
 
 \begin{document}
 
@@ -58,21 +58,37 @@
 \end{itemize}
 
 \section{Manuel d'utilisateur}
-% Consigne : comment utiliser votre code [cite: 62]
-Pour utiliser le programme, assurez-vous de posséder les fichiers \texttt{syntax.py} et \texttt{fonctions.py} dans le même répertoire.
+
+Pour utiliser le programme, assurez-vous de posséder les FICHIERKFGKFGKF dans le même répertoire.
 
 \begin{enumerate}
-    \item Lancez une console Python (REPL)[cite: 198].
-    \item Importez vos fonctions : \texttt{from fonctions import *}.
-    \item Définissez une formule en utilisant les constructeurs (ex: \texttt{f = ltf("x", "y")}).
-    \item Appliquez la fonction souhaitée : \texttt{print(dnf(f))}.
+    \item Lancez une console Python dans ce répertoire.
+    \item Lancer le programme principal avec la commande \textbf{\textit{python3 main.py}} (sous python 3).
+    \item A partir de là vous pouvez désormais choisir parmi les trois choix possibles, le 1, les tests, on vous demandera ensuite quel test exécuter. Ou alors vous pouvez directement choisir de lancer le programme principal de la procédure de décision avec sois en choix n°2 une formule déjà donné, sois en choix n°3 une formule que vous entrerez vous même.
+    \item Dans le cas de ce troisième choix vous entrerez votre formule en suivant les instructions de construction de formule, ensuite cela reviendra au deuxième choix avec la résolution si possible de la formule à l'aide de la procédure de décision.
 \end{enumerate}
 
 \section{Description de l'implantation}
 
 \subsection{Représentation des données}
 
-[DÉTAILLEZ ICI vos choix de structures de données. Par exemple, comment vous passez d'une formule monolithique à une liste de clauses pour faciliter l'élimination des quantificateurs.]
+Durant toute la première partie de notre programme, c'est à dire des tests des fonctions de bases jusqu'à la fin des vérifications des hypothèses, nous utiliserons la représentation classique sous forme de formule classique de logique. \\
+Notre représentation des données changera donc après cette dernière étape, nous allons donc utiliser à partir de l'élimination des quantificateurs depuis l'intérieur jusqu'à la fin de notre procédure de décision une tout autre représentation. 
+
+Elle sera composé d'une liste et de deux dictionnaires dont on va vous expliquer l'utilité :
+\begin{itemize}
+    \item Tout d'abord comme suggéré dans le sujet nous aurons une liste avec les variables de notre formule qui seront alors chacune associée à un quantificateur existentiel car les hypothèses pour la procédure de décision seront déjà satisfaites à cette étape. Par exemple pour la formule suivante $\exists x\,\exists y\,\exists z\,\varphi$ nous aurons la liste [x,y,z] dans cette ordre pour pouvoir éliminer les quantificateurs à partir du dernier élément de la liste jusqu'au premier. Cet ordre est simplement pour une meilleure compréhension car en python nous pouvons accéder facilement au dernier élément d'une liste, sinon nous aurons inversé l'ordre pour l'utiliser comme une pile en ajoutant les variables à partir du début de la formule.\\
+\end{itemize}
+
+Ensuite nous avons penser à une suite de cette représentation qui sera possible juste après avoir tiré les négations à l'intérieur de notre formule. Nous aurons besoin deux dictionnaires pour cela :
+
+\begin{itemize}
+    \item Le premier dictionnaire que nous appellerons dicoEqual sera composé de toute les égalités de la formule ou sous-formule étudié.\\
+    \item Dans le même style que le premier nous aurons le dictionnaire dicoLeft qui sera composé de toute les inégalités de la formule ou d'une sous-formule.
+\end{itemize}
+
+Pour les cas simple ces deux dictionnaires suffisent mais dès lors que nous aurons des formules constituées de $\lor$ et de $\land$ nous devrons séparer notre formule en sous formule pour les résoudre les unes après les autres. 
+Lorsque nous rencontrons un $\land$ nous pouvons mettre l'égalité ou l'inégalité dans le même dictionnaire mais si nous avons un $\lor$ il faut alors extraire les deux sous formules et créer les deux dictionnaires pour chacun afin de résoudre cela.
 
 \subsection{Implantation de la procédure de décision}
 
@@ -81,18 +97,31 @@ Pour utiliser le programme, assurez-vous de posséder les fichiers \texttt{synta
 Pour l'implantation de la procédure de décision on a suivi les instructions de la partie A.2 du sujet. Donc tout d'abord nous avons dû émettre des hypothèses sur notre formule que nous avons traduit par des fonctions crées dans notre code.
 
 Celle-ci ne peuvent être exécutés seulement si la formule est close, c'est à dire sans variables libres et qu'elle est composé seulement de symboles relationnels (< et =). 
-Nous avons traduit cela dans le code par les fonctions \texttt{freeVar(f)}, \texttt{isClose(f)}, \texttt{toClose(f)}, \texttt{isJustSymboleRelationnel(f)} et \texttt{isElimPossible(f)} qui les utilisent. Toutes celles-ci sont décrite dans la partie \textbf{Analyse des fonctions}. 
+Nous avons traduit cela dans le code par les fonctions \texttt{freeVar(f)}, \texttt{isClose(f)}, \texttt{toClose(f)}, \texttt{isJustSymboleRelationnel(f)} et \texttt{isElimPossible(f)} qui les utilisent. Toutes celles-ci sont décrite dans la partie \textbf{Analyse des fonctions}. \\
 
-Une fois ces exigences satisfaites nous pouvons procéder à la démarche de décision :
+
+Une fois toutes les exigences satisfaites nous pouvons commencer la démarche nous permettant de satisfaire toute les hypothèses nécessaire à la procédure de décision :
+
 \begin{itemize}
-    \item Tout d'abord nous devons convertir la formule en forme prénexe, pour cela nous avons créé la fonction \texttt{prenexe(f)}
+    \item Tout d'abord nous devons convertir la formule en forme prénexe, c'est à dire que tout ses quantificateurs sont situé à gauche de la formule, cela empêche d'avoir plusieurs variable de même nom mais de signification différentes. Pour cela nous avons créé la fonction \texttt{isPrenexe(f)} qui vérifie seulement si notre formule est sous forme prénexe, cela est supposé mais on l'appellera quand même pour suivre la démarche lors du programme principal.\\
     \item Ensuite nous devons convertir les quantificateurs universels en existentiels en suivant la formule suivante : $\forall x. \varphi \leftrightarrow \neg (\exists x. \neg \varphi)$.
-    Pour cela nous avons la fonction \texttt{allToExist(f)}.
-    \item Puis pour finir nous pouvons éliminer les quantificateurs à partir de l'interieur.
+    La fonction \texttt{allToExist(f)} suit cette formule et renvoie donc notre formule modifié.\\
+    \item Puis pour finir nous pouvons éliminer les quantificateurs à partir de l’intérieur. A partir de cette étape et pour toute la suite de notre programme nous utiliserons le deuxième type de représentation des données, n'étant plus des formules mais des listes. Celle-ci est expliqué plus haut dans la partie \textbf{Représentation des données}.
+    CGJDHJHNK?L.M/L.L?KNJBHVTFGDSGHJKLMK FGFDHHDF
 \end{itemize}
 
+\subsubsection{Prétraitement}
+
+Dans cette partie nous avons désormais une formule qui remplit toute les hypothèses et donc nous pouvons procéder au prétraitement de notre formule. Pour cela commençons par tirer les négations à l'intérieur de notre formule, pour nous aider nous avons deux formules importantes, qui sont : \[
+\begin{aligned}
+(a)\ &\neg (z \prec z') \leftrightarrow (z = z' \lor z' \prec z) \\
+(b)\ &\neg (z = z') \leftrightarrow (z \prec z' \lor z' \prec z)
+\end{aligned}
+\] à l'aide de celles-ci nous pouvons créer la fonction \texttt{tirerNegation(f)} qui nous renverra la formule f avec les négations tirées vers l'intérieur.
+
+
 \subsection{Analyse des fonctions}
-Voici la liste des fonctions actuellement implantées dans le fichier (\texttt{fonctions.py}) ainsi que leur fonctionnement :
+Voici la liste des fonctions actuellement implantées dans les fichiers (\texttt{fonctions\dots.py}) ainsi que leur fonctionnement :
 
 \subsubsection{Fonctions de base}
 \begin{itemize}
@@ -106,7 +135,12 @@ Voici la liste des fonctions actuellement implantées dans le fichier (\texttt{f
 \begin{itemize}
     \item \textbf{isClose(f)} : Récupère la liste des variables libres avec \textbf{freeVar(f)}, s'il n'y en a pas alors la formule est close sinon elle ne l'est pas.
     \item \textbf{toClose(f)} : Transforme une formule en formule close en ajoutant un quantificateur $\forall$ pour chaque variable libre.
-    \item \textbf{freeVar(f)} :  Parcourt récursivement l'arbre syntaxique en ajoutant les variables liées dans un ensemble quelle renvoie ensuite.
+    \item \textbf{freeVar(f)} : Parcourt récursivement l'arbre syntaxique en ajoutant les variables liées dans un ensemble quelle renvoie ensuite.
+    \item \textbf{isJustSymboleRelationnel(f)} : Parcourt récursivement l'arbre syntaxique de la formule et vérifie si elle est composée seulement de symboles relationnels en parcourant l'arbre syntaxique.
+    \item \textbf{isElimPossible(f)} : Vérifie si la formule est close et qu'avec des symboles relationnels.
+    \item \textbf{isPrenexe(f)} : On vérifie que la formule sois sous la forme prénexe à l'aide d'une fonction qui renvoie si oui ou non une formule contient des quantificateurs. Tant qu ela formule commence par un quantificateur on appelle récursivement sur son contenue et sinon le reste de la formule ne doit pas contenir de quantificateur.
+    \item \textbf{allToExist(f)} : Cette fonction se base seulement sur cette formule ($\forall x. \varphi \leftrightarrow \neg (\exists x. \neg \varphi)$) et l'applique à la formule donnée.
+    \item \textbf{tirerNegation(f)} : En utilisant les formules de négation cette formule parcourt l'arbre syntaxique de f pour remplacer le corps d'une négation en suivant la formule si cela est possible. Nous avons donc 4 cas pour les 4 implications de celles-ci.  
 \end{itemize}
 
 

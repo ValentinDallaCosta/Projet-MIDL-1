@@ -95,7 +95,7 @@ def dnf(f: Formula) -> Formula:
      
 
 
-#Fonctions permettant de vérifier les hypothèse pour la procédure de décision
+#---Fonctions permettant de vérifier les hypothèse pour la procédure de décision---#
 
 def freeVar(f: Formula, bound_vars=None) -> list:
     """Retourne la liste (éventuellement vide) des variables libres de la formule f."""
@@ -112,7 +112,7 @@ def freeVar(f: Formula, bound_vars=None) -> list:
         return sorted(list(left_free | right_free))
     elif isinstance(f, ComparF):
         free = set()
-        # on suppose que left/right sont des identifiants (str) représentant des variables
+        # on suppose que left/right sont des identifiants représentant des variables
         if isinstance(f.left, str) and (f.left not in bound_vars):
             free.add(f.left)
         if isinstance(f.right, str) and (f.right not in bound_vars):
@@ -159,4 +159,36 @@ def isElimPossible(f: Formula) -> bool:
         return False
     return True
 
+def isPrenexe(f: Formula) -> bool:
+    """Vérifie si une formule est en forme prénexe."""
+    def hasQuantifiers(f: Formula) -> bool:
+        """Vérifie si une formule contient des quantificateurs."""
+        if isinstance(f, QuantifF):
+            return True
+        elif isinstance(f, NotF):
+            return hasQuantifiers(f.sub)
+        elif isinstance(f, BoolOpF):
+            return hasQuantifiers(f.left) or hasQuantifiers(f.right)
+        else:
+            return False
+    
+    if isinstance(f, QuantifF):
+        return isPrenexe(f.body)
+    else:
+        # Si on atteint une formule qui n'est pas un quantificateur, on vérifie qu'elle ne contient pas de quantificateurs
+        return not hasQuantifiers(f)
 
+def allToExist(f: Formula) -> Formula:
+    """Transforme f en formule composée uniquement de quantificateurs existentiels en suivant la règle :
+    ∀x.P  ===  ¬(∃x.¬P)"""
+    if isinstance(f, QuantifF):
+        if isinstance(f.q, All):
+            return NotF(QuantifF(Ex(), f.var, NotF(allToExist(f.body))))
+        else:
+            return QuantifF(Ex(), f.var, allToExist(f.body))
+    elif isinstance(f, NotF):
+        return NotF(allToExist(f.sub))
+    elif isinstance(f, BoolOpF):
+        return BoolOpF(allToExist(f.left), f.op, allToExist(f.right))
+    else:
+        return f

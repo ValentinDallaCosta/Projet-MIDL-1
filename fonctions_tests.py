@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from fonctions import *
 
-
 def test_base():
     print("\n=== Création d'une structure ===")
     #Les constantes
@@ -132,12 +131,42 @@ def test_base():
 
     print("\n=== Fin des tests de base ===")
 
-def main():
+def test_isClose_toClose():
+    # Exemple de formule avec variable libre : ∀x (x = y)
+    f = allq("x", eqf("x", "y"))
+    print("Formule avec variable libre :", f)
+    print("Variables libres :", freeVar(f))
+    print("isClose(f) =", isClose(f))
+    f_closed = toClose(f)
+    print("Formule fermée obtenue avec toClose :", f_closed)
+    print("Variables libres de la formule fermée :", freeVar(f_closed))
+    print("isClose(f_closed) =", isClose(f_closed))
+
+def test_allToExist():
+    # Exemple de formule en prénexe avec quantificateurs universels : ∀x ∀y (x = y)
+    f = allq("x", allq("y", eqf("x", "y")))
+    print("Formule en prénexe avec quantificateurs universels :", f)
+    f_existential = allToExist(f)
+    print("Formule transformée avec allToExist :", f_existential)
+
+def test_isPrenexe():
+    # Exemple de formule en prénexe : ∀x ∃y (x = y)
+    f1 = allq("x", exq("y", eqf("x", "y")))
+    print("Formule f1 :", f1)
+    print("isPrenexe(f1) =", isPrenexe(f1))
+
+    # Exemple de formule non en prénexe : ∃y ∀x (x = y)
+    f2 = exq("y", allq("x", eqf("x", "y")))
+    print("Formule f2 :", f2)
+    print("isPrenexe(f2) =", isPrenexe(f2))
+
+
+def test_global():
     print("=== Tests des fonctions sur les formules ===")
 
     print("Quel test voulez vous exécuter ? :")
     print(" 1 - Test de base")
-    print(" 2 - ...")
+    print(" 2 - Test des fonctions vérifiant les hypothèses pour la procédure de décision")
 
 
     choice = input("Entrez 1 ou 2 : ")
@@ -146,19 +175,12 @@ def main():
         choice = input("Entrez 1 ou 2 : ")
 
     if choice == "1":
+        print("Début des tests de base\n")
         test_base()
     elif choice == "2":
-        #test de isClose 
-        f = allq("x", eqf("x", "y"))
-        print(f)
-        print(isClose(f)) # exemple d'appel
-        f = toClose(f) # exemple d'appel
-        print(f)
-        print(isClose(f)) # vérifier que f est maintenant fermé
-        print("Tests de isClose et toClose effectués.")
-
-
-
-
-if __name__ == "__main__":
-    main()
+        print("Début des tests des fonctions vérifiant les hypothèses pour la procédure de décision\n")
+        test_isClose_toClose()
+        print("\n")
+        test_allToExist()
+        print("\n")
+        test_isPrenexe()
