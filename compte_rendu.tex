@@ -77,7 +77,7 @@ Notre représentation des données changera donc après cette dernière étape, 
 
 Elle sera composé d'une liste et de deux dictionnaires dont on va vous expliquer l'utilité :
 \begin{itemize}
-    \item Tout d'abord comme suggéré dans le sujet nous aurons une liste avec les variables de notre formule qui seront alors chacune associée à un quantificateur existentiel car les hypothèses pour la procédure de décision seront déjà satisfaites à cette étape. Par exemple pour la formule suivante $\exists x\,\exists y\,\exists z\,\varphi$ nous aurons la liste [x,y,z] dans cette ordre pour pouvoir éliminer les quantificateurs à partir du dernier élément de la liste jusqu'au premier. Cet ordre est simplement pour une meilleure compréhension car en python nous pouvons accéder facilement au dernier élément d'une liste, sinon nous aurons inversé l'ordre pour l'utiliser comme une pile en ajoutant les variables à partir du début de la formule.\\
+    \item Tout d'abord comme suggéré dans le sujet nous aurons une liste avec les variables de notre formule qui seront alors chacune associée à un quantificateur existentiel car les hypothèses pour la procédure de décision seront déjà satisfaites à cette étape. Par exemple pour la formule suivante $\exists x\,\exists y\,\exists z\,\varphi$ nous aurons la liste [x,y,z] dans cette ordre pour pouvoir éliminer les quantificateurs à partir du dernier élément de la liste jusqu'au premier. Cet ordre est simplement pour une meilleure compréhension car en python nous pouvons accéder facilement au dernier élément d'une liste, sinon nous aurons inversé l'ordre pour l'utiliser comme une pile en ajoutant les variables à partir du début de la formule. De même, la liste ne sera pas exactement celle-ci mais plutôt [sub=QuantifF(q=Ex(), var='x', body=None), QuantifF(q=Ex(), var='y', body=None), QuantifF(q=Ex(), var='z', body=None)], de ce fait nous pourrons rajouter les négations dans cette liste.\\
 \end{itemize}
 
 Ensuite nous avons penser à une suite de cette représentation qui sera possible juste après avoir tiré les négations à l'intérieur de notre formule. Nous aurons besoin deux dictionnaires pour cela :
@@ -107,17 +107,23 @@ Une fois toutes les exigences satisfaites nous pouvons commencer la démarche no
     \item Ensuite nous devons convertir les quantificateurs universels en existentiels en suivant la formule suivante : $\forall x. \varphi \leftrightarrow \neg (\exists x. \neg \varphi)$.
     La fonction \texttt{allToExist(f)} suit cette formule et renvoie donc notre formule modifié.\\
     \item Puis pour finir nous pouvons éliminer les quantificateurs à partir de l’intérieur. A partir de cette étape et pour toute la suite de notre programme nous utiliserons le deuxième type de représentation des données, n'étant plus des formules mais des listes. Celle-ci est expliqué plus haut dans la partie \textbf{Représentation des données}.
-    CGJDHJHNK?L.M/L.L?KNJBHVTFGDSGHJKLMK FGFDHHDF
+
+    Donc nous allons créer pour nous aider les fonctions \texttt{extraireQuantificateurs(f)} et \texttt{reconstruireAvecQuantificateurs(f,quantif)} qui respectivement extrairont les quantificateurs de la formule et reconstruiront la formule à l'aide d'une telle liste. Leurs fonctionnement sont expliqués plus bas.
 \end{itemize}
 
 \subsubsection{Prétraitement}
 
-Dans cette partie nous avons désormais une formule qui remplit toute les hypothèses et donc nous pouvons procéder au prétraitement de notre formule. Pour cela commençons par tirer les négations à l'intérieur de notre formule, pour nous aider nous avons deux formules importantes, qui sont : \[
+Dans cette partie nous avons désormais une formule qui remplit toute les hypothèses et donc nous pouvons procéder à son prétraitement. Pour cela commençons par tirer les négations à l'intérieur de notre formule, le but de cette étape est de nous retrouver avec une formule sous forme normale négative. Pour cela nous avions déjà créé la fonction \texttt{nnf(f)} lors de la première partie du projet, nous allons donc la reprendre pour construire notre fonction \texttt{tirerNegation(f)}. Nous expliquons sont fonctionnement dans la partie \textbf{Analyse des fonctions}. \\
+
+Ensuite, une fois les négations tirées à l'intérieur de la formule, nous pouvons les supprimer le plus possible. Pour cela nous nous aidons des lois données dans le sujet qui sont : \[
 \begin{aligned}
 (a)\ &\neg (z \prec z') \leftrightarrow (z = z' \lor z' \prec z) \\
 (b)\ &\neg (z = z') \leftrightarrow (z \prec z' \lor z' \prec z)
-\end{aligned}
-\] à l'aide de celles-ci nous pouvons créer la fonction \texttt{tirerNegation(f)} qui nous renverra la formule f avec les négations tirées vers l'intérieur.
+\end{aligned}\] 
+
+à l'aide de celles-ci nous pouvons créer la fonction \texttt{elimNegation(f)} qui nous renverra le corps de la formule f avec le moins de négation possible.\\
+
+De ce fait, nous pouvons transformer notre formule en forme normale disjonctive pour faciliter la procédure de décision. Pour cela nous avons déjà la fonction \textbf{dnf(f)} qui prend une formule sans quantificateur et renvoie celle-ci sous forme normale disjonctive. Nous créons donc simplement une formule \textbf{toDisjonctive(f)} qui enlèvera les quantificateurs de la formule avant d'y appliquer notre fonction \textbf{dnf(f)}. 
 
 
 \subsection{Analyse des fonctions}
@@ -128,6 +134,8 @@ Voici la liste des fonctions actuellement implantées dans les fichiers (\texttt
     \item \textbf{dual(f)} : Parcourt récursivement l'arbre syntaxique pour inverser les opérateurs $\wedge$ et $\vee$.
     \item \textbf{nnf(f)} : Transforme une formule en Forme Normale Négative en descendant les négations jusqu'aux comparaisons.
     \item \textbf{dnf(f)} : Convertit la formule en Forme Normale Disjonctive en utilisant la distributivité.
+    \item \textbf{extraireQuantificateurs(f)} : Dans cette fonction itérative nous parcourons la formule dans une boucle "while" comportant 3 tests (il y a un quantificateur, un quantificateur précédé d'une négation ou deux négation à la suite). S'il y a deux négations alors on les supprime et on continue l'algorithme, sinon on ajoute dans une liste créé auparavant le quantificateur précédé ou non d'une négation.
+    \item \textbf{reconstruireAvecQuantificateurs(body, quantif)} : Cette fonction plus simple recompose seulement notre formule à l'aide du corps et des quantificateurs, une boucle "for" parcoure la liste de quantificateur à l'envers et ajoute l'élément au début du corps déjà donné.
 \end{itemize}
 
 \subsubsection{Fonctions d'aide pour la procédure de décision}
@@ -139,9 +147,30 @@ Voici la liste des fonctions actuellement implantées dans les fichiers (\texttt
     \item \textbf{isJustSymboleRelationnel(f)} : Parcourt récursivement l'arbre syntaxique de la formule et vérifie si elle est composée seulement de symboles relationnels en parcourant l'arbre syntaxique.
     \item \textbf{isElimPossible(f)} : Vérifie si la formule est close et qu'avec des symboles relationnels.
     \item \textbf{isPrenexe(f)} : On vérifie que la formule sois sous la forme prénexe à l'aide d'une fonction qui renvoie si oui ou non une formule contient des quantificateurs. Tant qu ela formule commence par un quantificateur on appelle récursivement sur son contenue et sinon le reste de la formule ne doit pas contenir de quantificateur.
-    \item \textbf{allToExist(f)} : Cette fonction se base seulement sur cette formule ($\forall x. \varphi \leftrightarrow \neg (\exists x. \neg \varphi)$) et l'applique à la formule donnée.
-    \item \textbf{tirerNegation(f)} : En utilisant les formules de négation cette formule parcourt l'arbre syntaxique de f pour remplacer le corps d'une négation en suivant la formule si cela est possible. Nous avons donc 4 cas pour les 4 implications de celles-ci.  
+    \item \textbf{allToExist(f)} : Cette fonction se base seulement sur cette formule ($\forall x. \varphi \leftrightarrow \neg (\exists x. \neg \varphi)$) et l'applique à la formule donnée.\\
 \end{itemize}
+
+\textbf{Fonctions de prétraitement :}
+
+\begin{itemize}
+    \item \textbf{tirerNegation(f)} : Comme nous l'avons dit précédemment nous allons nous aider de la fonction \textbf{nnf(f)} pour cette fonction là. Pour cela le seul enjeu est de donner la formule sans quantificateurs à notre sous fonction \textbf{nnf(f)}, ce qui se fait simplement avec la fonction \textbf{extraireQuantificateurs(f)}. Une fois fait nous pouvons appliquer \textbf{nnf(f)}.
+    \item \textbf{elimNegation(f)} : En utilisant les formules de négation cette formule parcourt l'arbre syntaxique de f pour remplacer le corps d'une négation en suivant la formule si cela est possible. Nous avons donc 2 cas pour les 2 implications de celles-ci. Plus un cas pour la double négation que l'on simplifiera.
+    \item \textbf{toDisjonctive(f)} : Tout comme pour \textbf{tirerNegation(f)} nous avons simplement à séparer le corps de la formule de ses quantificateurs avec \textbf{extraireQuantificateurs(f)} puis nous appliquons notre fonction \textbf{dnf(f)}. A cette fonction sera associé \textbf{isDisjonctive(f)} qui vérifie si notre formule est bien sous forme normale disjonctive.
+    \item \textbf{isDisjonctive(f)} : Parcoure notre formule et vérifie si celle-ci est bien une disjonction de conjonctions. Autrement dit qu'il n'y a pas de disjonction dans une suite de conjonctions et que les deux cotés d'une disjonction sont des formes normales disjonctives.
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 \section{Extensions (Lots 2 et 3)}

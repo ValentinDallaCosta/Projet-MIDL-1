@@ -1,4 +1,5 @@
 from syntax import *
+from typing import Tuple
 
 # Fonction récursive simple : inversion des opérateurs
 def dualOp(op: BoolOp) -> BoolOp:
@@ -43,7 +44,6 @@ def dual2(f: Formula) -> Formula:
     else:
         raise ValueError("dual2: type non connu")
 
-
 def nnf(f: Formula) -> Formula:
     """Retourne la forme normale négative de la formule f sans quantificateur."""
     if isinstance(f, ConstF) or isinstance(f, ComparF):
@@ -71,7 +71,6 @@ def nnf(f: Formula) -> Formula:
     else:
         raise ValueError("nnf: type non connu")
 
-
 def dnf(f: Formula) -> Formula:
     """Retourne la forme normale disjonctive de la formule f sans quantificateur."""
     f_nnf = nnf(f)
@@ -91,9 +90,46 @@ def dnf(f: Formula) -> Formula:
             else:
                 return conj(left_dnf, right_dnf)
     else:
-        raise ValueError("dnf: type non connu")
-     
+        raise ValueError("dnf: type non connu")   
+    
+def extraireQuantificateurs(f: Formula) -> Tuple[Formula, list]:
+    """Extrait les quantificateurs de la formule et retourne le corps sans quantificateurs
+    ainsi que la liste des quantificateurs extraits."""
+    quantifiers = []
+    body = f
 
+    # Extraction des quantificateurs en tête
+    # Il faut aussi traiter le cas où on a une négation devant un quantificateur ou deux négations
+    while isinstance(body, QuantifF) or (isinstance(body, NotF) and isinstance(body.sub, QuantifF)) or (isinstance(body, NotF) and isinstance(body.sub, NotF)):
+        if isinstance(body, NotF) and isinstance(body.sub, NotF):
+            # Double négation, on simplifie et on continue
+            body = body.sub.sub
+            continue
+        else:
+            if isinstance(body, NotF):
+                if isinstance(body.sub, All):
+                    quantifiers.append(NotF(QuantifF(All(), body.sub.var, None)))  # On stocke le quantificateur 
+                else:
+                    quantifiers.append(NotF(QuantifF(Ex(), body.sub.var, None)))  # On stocke le quantificateur
+                body = body.sub.body
+            else:
+                if isinstance(body, All):
+                    quantifiers.append(QuantifF(All(), body.var, None))  # On stocke le quantificateur 
+                else:
+                    quantifiers.append(QuantifF(Ex(), body.var, None))  # On stocke le quantificateur
+                body = body.body
+
+    return body, quantifiers
+
+def reconstruireAvecQuantificateurs(body: Formula, quantifiers: list) -> Formula:
+    """Reconstruit la formule en réappliquant les quantificateurs extraits.""" 
+    for q in reversed(quantifiers):
+        if isinstance(q, NotF):
+            inner_q = q.sub
+            body = NotF(QuantifF(inner_q.q, inner_q.var, body))
+        else:
+            body = QuantifF(q.q, q.var, body)
+    return body
 
 #---Fonctions permettant de vérifier les hypothèse pour la procédure de décision---#
 
@@ -154,8 +190,13 @@ def isJustSymboleRelationnel(f: Formula) -> bool:
 def isElimPossible(f: Formula) -> bool:
     """Vérifie si une formule est éligible à l'élimination des quantificateurs."""
     if not(isClose(f)):
+        ValueError("La formule n'est pas close.")
         return False
     if not(isJustSymboleRelationnel(f)):
+        ValueError("La formule contient des éléments autres que des symboles relationnels.")
+        return False
+    if not(isPrenexe(f)):
+        ValueError("La formule n'est pas en forme prénexe.")
         return False
     return True
 
@@ -180,7 +221,7 @@ def isPrenexe(f: Formula) -> bool:
 
 def allToExist(f: Formula) -> Formula:
     """Transforme f en formule composée uniquement de quantificateurs existentiels en suivant la règle :
-    ∀x.P  ===  ¬(∃x.¬P)"""
+    ∀x.P  ==  ¬(∃x.¬P)"""
     if isinstance(f, QuantifF):
         if isinstance(f.q, All):
             return NotF(QuantifF(Ex(), f.var, NotF(allToExist(f.body))))
@@ -192,3 +233,144 @@ def allToExist(f: Formula) -> Formula:
         return BoolOpF(allToExist(f.left), f.op, allToExist(f.right))
     else:
         return f
+
+#---Fonctions permettant de prétraitement des formules---#
+
+def tirerNegation(f: Formula) -> Formula:
+    """Tire les négations devant les quantificateurs en utilisant la fonction
+    nnf que l'on a déjà définie."""
+    # nnf ne pard en parametre que des formules sans quantificateurs, on doit donc
+    # séparer les quantificateurs de la formule, on
+    # reconstruira la formule complète après traitement pour tout renvoyer.
+
+    body, quantifiers = extraireQuantificateurs(f)
+
+    # Appliquer nnf sur le corps sans quantificateurs
+    body_nnf = nnf(body)
+
+    return reconstruireAvecQuantificateurs(body_nnf, quantifiers)
+
+def elimNegation(f: Formula) -> Formula:
+    """elimine le plus possible les négations devant les relations de la formule en utilisant les lois suivantes.
+    (a) ¬(z ≺ z') ↔ (z = z' v z' ≺ z)
+    (b) ¬(z = z') ↔ (z ≺ z' v z' ≺ z)
+    """
+    # Si c'est une negation :
+    if isinstance(f, NotF):
+        sub = f.sub
+        if isinstance(sub, ComparF):
+            if isinstance(sub.op, Lt):
+                # cas (a) ->
+                return BoolOpF(ComparF(sub.left, Eq(), sub.right), Disj(), ComparF(sub.right, Lt(), sub.left))
+            elif isinstance(sub.op, Eq):
+                # cas (b) ->
+                return BoolOpF(ComparF(sub.left, Lt(), sub.right), Disj(), ComparF(sub.right, Lt(), sub.left))
+        else:
+            if isinstance(sub, NotF):
+                # Double négation, on simplifie
+                return elimNegation(sub.sub)
+            return NotF(elimNegation(sub))
+    elif isinstance(f, BoolOpF):
+        return BoolOpF(elimNegation(f.left), f.op, elimNegation(f.right))
+    elif isinstance(f, QuantifF):
+        return QuantifF(f.q, f.var, elimNegation(f.body))
+    else:
+        return f
+    
+def toDisjonctive(f: Formula) -> Formula:
+    """Met la formule en forme disjonctive sans quantificateur."""
+
+    # On sépare les quantificateurs de la formule
+    body, quantifiers = extraireQuantificateurs(f)
+
+    # On applique dnf sur le corps sans quantificateurs
+    f1 = dnf(body)
+
+    if not isDisjonctive(f1):
+        raise ValueError("La formule n'a pas pu être mise en forme disjonctive.")
+    
+    return reconstruireAvecQuantificateurs(f1, quantifiers)
+
+def isDisjonctive(f: Formula) -> bool:
+    """Vérifie si une formule est en forme disjonctive (disjonction de conjonctions)."""
+    def isConjunctionOfLiterals(f: Formula) -> bool:
+        """Vérifie si une formule est une conjonction de littéraux (pas de disjonction à l'intérieur)."""
+        if isinstance(f, BoolOpF):
+            if isinstance(f.op, Conj):
+                # Pour une conjonction, les deux côtés doivent être des conjonctions de littéraux
+                return isConjunctionOfLiterals(f.left) and isConjunctionOfLiterals(f.right)
+            elif isinstance(f.op, Disj):
+                # Une disjonction ne doit pas apparaître dans une conjonction
+                return False
+        elif isinstance(f, NotF):
+            # Une négation est un littéral si elle porte sur une comparaison
+            return isinstance(f.sub, ComparF)
+        elif isinstance(f, ComparF):
+            # Une comparaison est un littéral
+            return True
+        elif isinstance(f, ConstF):
+            return True
+        elif isinstance(f, QuantifF):
+            return isConjunctionOfLiterals(f.body)
+        else:
+            return False
+
+    if isinstance(f, BoolOpF):
+        if isinstance(f.op, Disj):
+            # Au niveau d'une disjonction, les deux côtés doivent être en forme disjonctive
+            return isDisjonctive(f.left) and isDisjonctive(f.right)
+        elif isinstance(f.op, Conj):
+            # Au niveau d'une conjonction, tous les éléments doivent être des littéraux (pas de disjonction à l'intérieur)
+            return isConjunctionOfLiterals(f)
+    elif isinstance(f, NotF):
+        # Une négation est un littéral
+        return isinstance(f.sub, ComparF)
+    elif isinstance(f, QuantifF):
+        return isDisjonctive(f.body)
+    elif isinstance(f, ComparF):
+        # Une comparaison est un littéral
+        return True
+    elif isinstance(f, ConstF):
+        return True
+    else:
+        return False
+
+#---Programme principal : Décision d'une fonction---#
+
+def decision(g: Formula) -> bool:
+    """Procédure de décision d'une formule"""
+
+    # ÉTAPE 0 : hypothèses vérifiées
+    f = toClose(g)  # S'assurer que la formule est close
+
+    if not isElimPossible(f):
+        # Close, symboles relationnels seulement, et prénexe supposé
+        raise ValueError("Formule non éligible à l'élimination des quantificateurs.")
+
+    f0 = allToExist(f) # Convertir forall en exists
+
+    # ==========PRÉTRAITEMENT DE LA FORMULE========== #
+    # Étape 1 : On elimine et tire les négations vers l'interieur
+
+    f1 = tirerNegation(f0)
+    f1 = elimNegation(f1)
+    print("Après éliminations des négations :", f1)
+
+    # Étape 2 : Mettre en forme normale disjonctive
+    f2 = toDisjonctive(f1)
+    print("Après mise en forme normale disjonctive :", f2)
+
+    
+
+
+
+
+
+
+
+
+    # Étape 5 : Vérification de la validité
+    if isinstance(f, ConstF):
+        return f.val
+    else:
+        raise ValueError("La formule finale n'est pas une constante.")

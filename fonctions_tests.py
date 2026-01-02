@@ -132,6 +132,7 @@ def test_base():
     print("\n=== Fin des tests de base ===")
 
 def test_isClose_toClose():
+    print("=== Test des fonctions isClose et toClose ===")
     # Exemple de formule avec variable libre : ∀x (x = y)
     f = allq("x", eqf("x", "y"))
     print("Formule avec variable libre :", f)
@@ -143,6 +144,7 @@ def test_isClose_toClose():
     print("isClose(f_closed) =", isClose(f_closed))
 
 def test_allToExist():
+    print("=== Test de la fonction allToExist ===")
     # Exemple de formule en prénexe avec quantificateurs universels : ∀x ∀y (x = y)
     f = allq("x", allq("y", eqf("x", "y")))
     print("Formule en prénexe avec quantificateurs universels :", f)
@@ -150,6 +152,7 @@ def test_allToExist():
     print("Formule transformée avec allToExist :", f_existential)
 
 def test_isPrenexe():
+    print("=== Test de la fonction isPrenexe ===")
     # Exemple de formule en prénexe : ∀x ∃y (x = y)
     f1 = allq("x", exq("y", eqf("x", "y")))
     print("Formule f1 :", f1)
@@ -160,6 +163,47 @@ def test_isPrenexe():
     print("Formule f2 :", f2)
     print("isPrenexe(f2) =", isPrenexe(f2))
 
+def test_elimNegation():
+    print("=== Test de la fonction elimNegation ===")
+    # Exemple de formule avec négation devant un quantificateur : ¬(∀x (x = y))
+    f = NotF(allq("x", eqf("x", "y")))
+    print("Formule avec négation devant un quantificateur :", f)
+    f1 = allToExist(f)
+    print("Formule après allToExist :", f1)
+    f_elim = elimNegation(f1)
+    print("Formule après application de elimNegation :", f_elim)
+
+    print("\n")
+    # Autre exemple : (∃y ¬(x < y))
+    g = exq("y", NotF(ltf("x", "y")))
+    print("Autre formule avec négation devant un quantificateur :", g)
+    g1 = allToExist(g)
+    print("Formule après allToExist :", g1)
+    g_elim = elimNegation(g1)
+    print("Formule après application de elimNegation :", g_elim)
+
+def test_tirerNegation():
+    print("=== Test de la fonction tirerNegation ===")
+    # Exemple sur la formule : ¬∃x, ∃y, ¬( (x = y) ∧ (y < z) )
+    f = NotF(exq("x", exq("y", NotF(conj(eqf("x", "y"), ltf("y", "z"))))))
+    print("Formule avec négation devant une conjonction :", f)
+    f_tirer = tirerNegation(f)
+    print("Formule après application de tirerNegation :", f_tirer)
+
+    print("\n")
+    # Autre exemple : ¬( (x = y) ∨ (y < z) )
+    g = NotF(disj(eqf("x", "y"), ltf("y", "z")))
+    print("Autre formule avec négation devant une disjonction :", g)
+    g_tirer = tirerNegation(g)
+    print("Formule après application de tirerNegation :", g_tirer)
+
+def test_toDisjonctive():
+    print("=== Test de la fonction toDisjonctive ===")
+    # Exemple de formule non en forme disjonctive :∃x, ∃y, ∃z,  (((x < y) ∨ (y < x)) ∧ ((y < z))
+    f = exq("x", exq("y", exq("z", conj(disj(ltf("x", "y"), ltf("y", "x")), ltf("y", "z")))))
+    print("Formule non en forme disjonctive :", f)
+    f_dnf = toDisjonctive(f)
+    print("Formule après application de toDisjonctive :", f_dnf)
 
 def test_global():
     print("=== Tests des fonctions sur les formules ===")
@@ -167,12 +211,13 @@ def test_global():
     print("Quel test voulez vous exécuter ? :")
     print(" 1 - Test de base")
     print(" 2 - Test des fonctions vérifiant les hypothèses pour la procédure de décision")
+    print(" 3 - Test des fonctions de prétraitement des formules")
 
 
-    choice = input("Entrez 1 ou 2 : ")
-    while choice not in ["1", "2"]:
-        print("Choix invalide. Veuillez entrer 1 ou 2.")
-        choice = input("Entrez 1 ou 2 : ")
+    choice = input("Entrez 1, 2 ou 3: ")
+    while choice not in ["1", "2", "3"]:
+        print("Choix invalide. Veuillez entrer 1, 2 ou 3.")
+        choice = input("Entrez 1, 2 ou 3 : ")
 
     if choice == "1":
         print("Début des tests de base\n")
@@ -184,3 +229,10 @@ def test_global():
         test_allToExist()
         print("\n")
         test_isPrenexe()
+    elif choice == "3":
+        print("Début des tests des fonctions de prétraitement des formules\n")
+        test_tirerNegation()
+        print("\n")
+        test_elimNegation()
+        print("\n")
+        test_toDisjonctive()
