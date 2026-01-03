@@ -72,23 +72,22 @@ Pour utiliser le programme, assurez-vous de posséder les FICHIERKFGKFGKF dans l
 
 \subsection{Représentation des données}
 
-Durant toute la première partie de notre programme, c'est à dire des tests des fonctions de bases jusqu'à la fin des vérifications des hypothèses, nous utiliserons la représentation classique sous forme de formule classique de logique. \\
-Notre représentation des données changera donc après cette dernière étape, nous allons donc utiliser à partir de l'élimination des quantificateurs depuis l'intérieur jusqu'à la fin de notre procédure de décision une tout autre représentation. 
+Durant toute la première partie de notre programme, c'est à dire des tests des fonctions de bases jusqu'à la fin des vérifications des hypothèses, nous utiliserons la représentation classique sous forme de formule de logique.\\
 
-Elle sera composé d'une liste et de deux dictionnaires dont on va vous expliquer l'utilité :
-\begin{itemize}
-    \item Tout d'abord comme suggéré dans le sujet nous aurons une liste avec les variables de notre formule qui seront alors chacune associée à un quantificateur existentiel car les hypothèses pour la procédure de décision seront déjà satisfaites à cette étape. Par exemple pour la formule suivante $\exists x\,\exists y\,\exists z\,\varphi$ nous aurons la liste [x,y,z] dans cette ordre pour pouvoir éliminer les quantificateurs à partir du dernier élément de la liste jusqu'au premier. Cet ordre est simplement pour une meilleure compréhension car en python nous pouvons accéder facilement au dernier élément d'une liste, sinon nous aurons inversé l'ordre pour l'utiliser comme une pile en ajoutant les variables à partir du début de la formule. De même, la liste ne sera pas exactement celle-ci mais plutôt [sub=QuantifF(q=Ex(), var='x', body=None), QuantifF(q=Ex(), var='y', body=None), QuantifF(q=Ex(), var='z', body=None)], de ce fait nous pourrons rajouter les négations dans cette liste.\\
-\end{itemize}
+Notre représentation des données changera donc après cette dernière étape, nous allons donc utiliser à partir de l'élimination des quantificateurs depuis l'intérieur jusqu'à la fin de notre procédure de décision une tout autre représentation.
 
-Ensuite nous avons penser à une suite de cette représentation qui sera possible juste après avoir tiré les négations à l'intérieur de notre formule. Nous aurons besoin deux dictionnaires pour cela :
+Nous avons eu une première idée basée sur deux dictionnaires que nous avons approfondie mais nous nous sommes rendu compte que celle ci était trop compliqué à mettre en place dans la suite du programme, on vous la laisse donc en annexe de ce rapport avant de vous expliciter notre choix final.\\
 
-\begin{itemize}
-    \item Le premier dictionnaire que nous appellerons dicoEqual sera composé de toute les égalités de la formule ou sous-formule étudié.\\
-    \item Dans le même style que le premier nous aurons le dictionnaire dicoLeft qui sera composé de toute les inégalités de la formule ou d'une sous-formule.
-\end{itemize}
+Tout d'abord comme suggéré dans le sujet nous aurons une liste avec les variables de notre formule qui seront alors chacune associée à un quantificateur existentiel car les hypothèses pour la procédure de décision seront déjà satisfaites à cette étape. Par exemple pour la formule suivante $\exists x\,\exists y\,\varphi$ nous aurons la liste [x,y] dans cette ordre pour pouvoir éliminer les quantificateurs à partir du dernier élément de la liste jusqu'au premier. De ce fait nous pourrons passer en paramètre de certaine de nos fonctions seulement le corps de la fonction, ce qui simplifiera le code de celle-ci.
 
-Pour les cas simple ces deux dictionnaires suffisent mais dès lors que nous aurons des formules constituées de $\lor$ et de $\land$ nous devrons séparer notre formule en sous formule pour les résoudre les unes après les autres. 
-Lorsque nous rencontrons un $\land$ nous pouvons mettre l'égalité ou l'inégalité dans le même dictionnaire mais si nous avons un $\lor$ il faut alors extraire les deux sous formules et créer les deux dictionnaires pour chacun afin de résoudre cela.
+Cet ordre est simplement pour une meilleure compréhension car en python nous pouvons accéder facilement au dernier élément d'une liste, sinon nous aurons inversé l'ordre pour l'utiliser comme une pile en ajoutant les variables à partir du début de la formule. De même, la liste ne sera pas exactement celle-ci mais plutôt [sub=QuantifF(q=Ex(), var='x', body=None), QuantifF(q=Ex(), var='y', body=None)], de ce fait nous pourrons rajouter les négations dans cette liste.\\
+
+Ensuite lorsque nous arriverons à la dernière étape de notre procédé de prétraitement nous devons tirer la quantification existentielle à l'intérieur de nos disjonctions, car à partir de cette étape nous avons une formule qui est sous forme normale disjonctive. De ce fait nous aurons l'apparition d'une deuxième liste qui sera composée pour chacun de ses éléments, des quantificateurs et de leur potentielle négation ainsi que d'une conjonction de relation. Notre liste sera alors en quelque sorte une disjonction de sous formule (ici des conjoction) extraites de notre formule.
+\[
+Liste \leftrightarrow\; \bigvee_j (\exists x\, \psi_j)
+\]
+Nous pouvons apparenter la virgule entre les termes de la liste comme des disjonctions.
+
 
 \subsection{Implantation de la procédure de décision}
 
@@ -123,7 +122,9 @@ Ensuite, une fois les négations tirées à l'intérieur de la formule, nous pou
 
 à l'aide de celles-ci nous pouvons créer la fonction \texttt{elimNegation(f)} qui nous renverra le corps de la formule f avec le moins de négation possible.\\
 
-De ce fait, nous pouvons transformer notre formule en forme normale disjonctive pour faciliter la procédure de décision. Pour cela nous avons déjà la fonction \textbf{dnf(f)} qui prend une formule sans quantificateur et renvoie celle-ci sous forme normale disjonctive. Nous créons donc simplement une formule \textbf{toDisjonctive(f)} qui enlèvera les quantificateurs de la formule avant d'y appliquer notre fonction \textbf{dnf(f)}. 
+De ce fait, nous pouvons transformer notre formule en forme normale disjonctive pour faciliter la procédure de décision. Pour cela nous avons déjà la fonction \texttt{dnf(f)} qui prend une formule sans quantificateur et renvoie celle-ci sous forme normale disjonctive. Nous créons donc simplement une formule \texttt{toDisjonctive(f)} qui enlèvera les quantificateurs de la formule avant d'y appliquer notre fonction \texttt{dnf(f)}. \\
+
+Pour la dernière étape du prétraitement et comme expliqué dans la partie méthodologie nous allons créer une foction qui nous renvoie une nouvelle liste, celle qui représentera notre forme normale disjonctive sous la forme de sous formule composée exclusivement de conjonction. Le but de cette fonction que nous appellerons \texttt{tirerQuantif(f)}, est de donner cette forme à notre formule : $\bigvee_j (\exists x\, \psi_j)$. Les termes de cette disjonction étant chacun des éléments de notre nouvelle liste, les $\psi_j$ sont eux un ensemble d'aucune ou de plusieurs conjoctions.
 
 
 \subsection{Analyse des fonctions}
@@ -157,6 +158,7 @@ Voici la liste des fonctions actuellement implantées dans les fichiers (\texttt
     \item \textbf{elimNegation(f)} : En utilisant les formules de négation cette formule parcourt l'arbre syntaxique de f pour remplacer le corps d'une négation en suivant la formule si cela est possible. Nous avons donc 2 cas pour les 2 implications de celles-ci. Plus un cas pour la double négation que l'on simplifiera.
     \item \textbf{toDisjonctive(f)} : Tout comme pour \textbf{tirerNegation(f)} nous avons simplement à séparer le corps de la formule de ses quantificateurs avec \textbf{extraireQuantificateurs(f)} puis nous appliquons notre fonction \textbf{dnf(f)}. A cette fonction sera associé \textbf{isDisjonctive(f)} qui vérifie si notre formule est bien sous forme normale disjonctive.
     \item \textbf{isDisjonctive(f)} : Parcoure notre formule et vérifie si celle-ci est bien une disjonction de conjonctions. Autrement dit qu'il n'y a pas de disjonction dans une suite de conjonctions et que les deux cotés d'une disjonction sont des formes normales disjonctives.
+    \item \textbf{tirerQuantif(f)} : # Comme on ne peut pas voir de négation devant la sous of
 \end{itemize}
 
 
@@ -238,5 +240,24 @@ def solve_exists_x(conjunction, x):
     # 3. Retourner la conjonction finale
     # return conj_list(new_constraints + others)
 \end{lstlisting}
+
+
+
+\section{Annexe}
+
+Elle sera composé d'une liste et de deux dictionnaires dont on va vous expliquer l'utilité :
+\begin{itemize}
+    \item Tout d'abord comme suggéré dans le sujet nous aurons une liste avec les variables de notre formule qui seront alors chacune associée à un quantificateur existentiel car les hypothèses pour la procédure de décision seront déjà satisfaites à cette étape. Par exemple pour la formule suivante $\exists x\,\exists y\,\exists z\,\varphi$ nous aurons la liste [x,y,z] dans cette ordre pour pouvoir éliminer les quantificateurs à partir du dernier élément de la liste jusqu'au premier. Cet ordre est simplement pour une meilleure compréhension car en python nous pouvons accéder facilement au dernier élément d'une liste, sinon nous aurons inversé l'ordre pour l'utiliser comme une pile en ajoutant les variables à partir du début de la formule. De même, la liste ne sera pas exactement celle-ci mais plutôt [sub=QuantifF(q=Ex(), var='x', body=None), QuantifF(q=Ex(), var='y', body=None), QuantifF(q=Ex(), var='z', body=None)], de ce fait nous pourrons rajouter les négations dans cette liste.\\
+\end{itemize}
+
+Ensuite nous avons penser à une suite de cette représentation qui sera possible juste après avoir tiré les négations à l'intérieur de notre formule. Nous aurons besoin deux dictionnaires pour cela :
+
+\begin{itemize}
+    \item Le premier dictionnaire que nous appellerons dicoEqual sera composé de toute les égalités de la formule ou sous-formule étudié.\\
+    \item Dans le même style que le premier nous aurons le dictionnaire dicoLeft qui sera composé de toute les inégalités de la formule ou d'une sous-formule.
+\end{itemize}
+
+Pour les cas simple ces deux dictionnaires suffisent mais dès lors que nous aurons des formules constituées de $\lor$ et de $\land$ nous devrons séparer notre formule en sous formule pour les résoudre les unes après les autres. 
+Lorsque nous rencontrons un $\land$ nous pouvons mettre l'égalité ou l'inégalité dans le même dictionnaire mais si nous avons un $\lor$ il faut alors extraire les deux sous formules et créer les deux dictionnaires pour chacun afin de résoudre cela.
 
 \end{document}

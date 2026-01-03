@@ -184,19 +184,21 @@ def isJustSymboleRelationnel(f: Formula) -> bool:
         return isJustSymboleRelationnel(f.sub)
     elif isinstance(f, BoolOpF):
         return isJustSymboleRelationnel(f.left) and isJustSymboleRelationnel(f.right)
+    elif isinstance(f, QuantifF):
+        return isJustSymboleRelationnel(f.body)
     else:
         return False
     
 def isElimPossible(f: Formula) -> bool:
     """Vérifie si une formule est éligible à l'élimination des quantificateurs."""
     if not(isClose(f)):
-        ValueError("La formule n'est pas close.")
+        print("La formule n'est pas close.")
         return False
     if not(isJustSymboleRelationnel(f)):
-        ValueError("La formule contient des éléments autres que des symboles relationnels.")
+        print("La formule contient des éléments autres que des symboles relationnels.")
         return False
     if not(isPrenexe(f)):
-        ValueError("La formule n'est pas en forme prénexe.")
+        print("La formule n'est pas en forme prénexe.")
         return False
     return True
 
@@ -335,6 +337,36 @@ def isDisjonctive(f: Formula) -> bool:
     else:
         return False
 
+def tirerQuantif(f: Formula) -> Formula:
+    """Tire les quantificateurs devant les formules extraites d'une formule
+    en forme normale disjonctive."""
+
+    # Liste de conjonctions avec leurs quantificateurs
+    conjunctions = []
+
+    #On récupère les quantificateurs
+    body, quantifiers = extraireQuantificateurs(f)
+
+    # On traite chaque disjonction
+    if isinstance(body, BoolOpF) and isinstance(body.op, Disj):
+        disjuncts = [body.left, body.right]
+    else:
+        disjuncts = [body]
+
+    for disj in disjuncts:
+        # Pour chaque sous formule d'une disjonction on teste si c'est une conjonction
+
+        # Si c'est une disjonction, on ajoute chaque partie séparément à la liste de disjonctions
+        if isinstance(disj, BoolOpF) and isinstance(disj.op, Disj):
+            disjuncts.append(disj.left)
+            disjuncts.append(disj.right)
+        
+        # Si ce n'est plus une disjonction, on ajoute la conjonction avec les quantificateurs de la formule
+        else:
+            conjunctions.append(reconstruireAvecQuantificateurs(disj, quantifiers))
+
+    return conjunctions
+
 #---Programme principal : Décision d'une fonction---#
 
 def decision(g: Formula) -> bool:
@@ -348,21 +380,27 @@ def decision(g: Formula) -> bool:
         raise ValueError("Formule non éligible à l'élimination des quantificateurs.")
 
     f0 = allToExist(f) # Convertir forall en exists
+    print("Après conversion de tous les quantificateurs universels en existentiels :", f0)
 
     # ==========PRÉTRAITEMENT DE LA FORMULE========== #
     # Étape 1 : On elimine et tire les négations vers l'interieur
 
     f1 = tirerNegation(f0)
     f1 = elimNegation(f1)
-    print("Après éliminations des négations :", f1)
+    print("\nAprès éliminations des négations :", f1)
 
     # Étape 2 : Mettre en forme normale disjonctive
     f2 = toDisjonctive(f1)
-    print("Après mise en forme normale disjonctive :", f2)
+    print("\nAprès mise en forme normale disjonctive :", f2)
 
-    
+    # Étape 3 : Tirer les quantificateurs devant les disjonctions
+    conjunctions = tirerQuantif(f2)
 
+    print("\nAprès tirage des quantificateurs devant les disjonctions :")
+    for i, conj in enumerate(conjunctions, 1):
+        print(f"  Conjonction {i} :", conj)
 
+    return True
 
 
 

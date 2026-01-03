@@ -205,6 +205,42 @@ def test_toDisjonctive():
     f_dnf = toDisjonctive(f)
     print("Formule après application de toDisjonctive :", f_dnf)
 
+def test_isDisjonctive():
+    print("=== Test de la fonction isDisjonctive ===")
+    # Exemple de formule en forme disjonctive : ∃x, ∃y,  ((x < y) ∨ (y < x))
+    f1 = exq("x", exq("y", disj(ltf("x", "y"), ltf("y", "x"))))
+    print("Formule f1 :", f1)
+    print("isDisjonctive(f1) =", isDisjonctive(f1))
+
+    # Exemple de formule non en forme disjonctive : ∃x, ∃y,  ((x < y) ∧ (y < x))
+    f2 = exq("x", exq("y", conj(ltf("x", "y"), ltf("y", "x"))))
+    print("Formule f2 :", f2)
+    print("isDisjonctive(f2) =", isDisjonctive(f2))
+
+def test_tirerQuantif():
+    print("=== Test de la fonction tirerQuantif ===")
+    # Exemple 1 : ∃x ¬∃y ∃z ( (x < y) ∨ (y < z) )
+    f1 = exq("x", NotF(exq("y", exq("z", disj(ltf("x", "y"), ltf("y", "z"))))))
+    print("Formule f1 :", f1)
+    res1 = tirerQuantif(f1)
+    print("Liste retournée pour f1 :")
+    for i, r in enumerate(res1, 1):
+        print(f"  [{i}]", r)
+
+    print("\n")
+    # Exemple 2 : ∃x ∃y ∃z ¬∃w ( (x < y ∧ y = z) ∨ (x = z ∧ z < w) )
+    f2 = exq("x", exq("y", exq("z", NotF(exq("w", disj(conj(ltf("x", "y"), eqf("y", "z")), conj(eqf("x", "z"), ltf("z", "w"))))))))
+    print("Formule f2 :", f2)
+    res2 = tirerQuantif(f2)
+    print("Liste retournée pour f2 :")
+    for i, r in enumerate(res2, 1):
+        print(f"  [{i}]", r)
+    
+
+
+
+
+
 def test_global():
     print("=== Tests des fonctions sur les formules ===")
 
@@ -236,3 +272,7 @@ def test_global():
         test_elimNegation()
         print("\n")
         test_toDisjonctive()
+        print("\n")
+        test_isDisjonctive()
+        print("\n")
+        test_tirerQuantif()

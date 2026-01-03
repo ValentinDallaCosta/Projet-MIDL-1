@@ -18,7 +18,13 @@ if __name__ == "__main__":
         print("\n")
         test_global()
     elif choice == "2":
-        #TODO: définir une formule de test
+        print("=== Test avec une formule prédéfinie ===\n")
+        # Notre formule de test : ∀x ∃y ∃z ¬(((x = y) ∨ (y = z)))
+        f = allq("x", exq("y", exq("z", NotF(disj(eqf("x", "y"), eqf("y", "z"))))))
+        print("Formule de test :", f)
+        print("Lancement du programme de décision avec cette formule...\n")
+        decision(f)
+
         print("\n")
     else:
         #TODO: demander à l'utilisateur de saisir une formule
