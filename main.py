@@ -19,8 +19,8 @@ if __name__ == "__main__":
         test_global()
     elif choice == "2":
         print("=== Test avec une formule prédéfinie ===\n")
-        # Notre formule de test : ∀x ∃y ∃z ¬(((x = y) ∨ (y = z)))
-        f = allq("x", exq("y", exq("z", NotF(disj(eqf("x", "y"), eqf("y", "z"))))))
+        # Formule de test : ∀x ∀y ∃z ∃w ( ¬(x < x ∨ z < y) ∨ (y = z ∧ y < z) )
+        f = allq("x", allq("y", exq("z", exq("w", disj(NotF(disj(ltf("x", "x"), ltf("z", "y"))), conj(eqf("y", "z"), ltf("y", "z")))))))
         print("Formule de test :", f)
         print("Lancement du programme de décision avec cette formule...\n")
         decision(f)

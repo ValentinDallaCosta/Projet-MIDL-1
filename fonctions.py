@@ -131,6 +131,26 @@ def reconstruireAvecQuantificateurs(body: Formula, quantifiers: list) -> Formula
             body = QuantifF(q.q, q.var, body)
     return body
 
+def allVarInFormula(f: Formula) -> list:
+    """Retourne toutes les variables présentes dans une formule."""
+    if isinstance(f, QuantifF):
+        return allVarInFormula(f.body)
+    elif isinstance(f, BoolOpF):
+        return allVarInFormula(f.left) + allVarInFormula(f.right)
+    elif isinstance(f, NotF):
+        return allVarInFormula(f.sub)
+    elif isinstance(f, ComparF):
+        return ([f.left] if isinstance(f.left, str) else []) + ([f.right] if isinstance(f.right, str) else [])
+    elif isinstance(f, ConstF):
+        return []
+    else:
+        return []
+
+def affichageListeFormules(formules: list):
+    """Affiche une liste de formules."""
+    for i, f in enumerate(formules, 1):
+        print(f"  Formule {i} :", f)
+
 #---Fonctions permettant de vérifier les hypothèse pour la procédure de décision---#
 
 def freeVar(f: Formula, bound_vars=None) -> list:
@@ -367,6 +387,89 @@ def tirerQuantif(f: Formula) -> Formula:
 
     return conjunctions
 
+#---Fonctions permettant la suppression de variables---#
+
+def elimQuantifInutile(conjonctions: list) -> list:
+    """Elimine les quantificateurs inutiles de la formule f."""
+    # Si x n'appartient pas au variable de ψ : (∃x. ψ) ↔ ψ
+    returned_conjonctions = []
+    isNot = False
+
+    for conj in conjonctions:
+        vars_in_formula = allVarInFormula(conj)
+        # On extrait les quantificateurs
+        body, quantifiers = extraireQuantificateurs(conj)
+        useful_quantifiers = []
+
+        # On filtre les quantificateurs inutiles
+        for q in quantifiers:
+            if isinstance(q, NotF):
+                # On gère le cas des quantificateurs négatifs
+                inner_q = q.sub
+                if inner_q.var in vars_in_formula:
+                    if isNot:
+                        useful_quantifiers.append(inner_q)
+                        isNot = False
+                    else:
+                        useful_quantifiers.append(q)
+                else :
+                    isNot = True
+            elif q.var in vars_in_formula:
+                if isNot:
+                    useful_quantifiers.append(NotF(q))
+                    isNot = False
+                else:
+                    useful_quantifiers.append(q)
+
+        # On reconstruit la formule sans les quantificateurs inutiles
+        if isNot:
+            # Si le dernier quantificateur était inutile et précédé d'une négation, on ajoute la négation
+            body = NotF(body)
+            isNot = False
+        conj = reconstruireAvecQuantificateurs(body, useful_quantifiers)
+        returned_conjonctions.append(conj)
+    return returned_conjonctions
+
+def supXltX(conjonctions: list) -> list:
+    """Transforme une formule contenant des comparaisons de la forme (x < x) en juste False."""
+
+    def searchXltX(formula):
+        """Renvoie True si la formule contient une comparaison de la forme (x < x)."""
+        if isinstance(formula, BoolOpF):
+            return searchXltX(formula.left) or searchXltX(formula.right)
+        elif isinstance(formula, NotF):
+            return searchXltX(formula.sub)
+        elif isinstance(formula, QuantifF):
+            return searchXltX(formula.body)
+        elif isinstance(formula, ComparF) and formula.op == Lt() and formula.left == formula.right:
+            return True
+        else:
+            return False
+
+    returned_conjonctions = []
+    for f in conjonctions:
+        # On cherche si la formule contient une comparaison de la forme (x < x)
+        if searchXltX(f):
+            # Si oui, on remplace la formule par False
+            returned_conjonctions.append(ConstF(False))
+        else:
+            # Sinon, on garde la formule telle quelle
+            returned_conjonctions.append(f)
+
+    return returned_conjonctions
+
+
+
+
+
+
+
+
+
+
+
+
+
 #---Programme principal : Décision d'une fonction---#
 
 def decision(g: Formula) -> bool:
@@ -374,6 +477,7 @@ def decision(g: Formula) -> bool:
 
     # ÉTAPE 0 : hypothèses vérifiées
     f = toClose(g)  # S'assurer que la formule est close
+    print("Formule automatiquement transformée en formule close avec ajout de quantificateurs universels si nécessaire.")
 
     if not isElimPossible(f):
         # Close, symboles relationnels seulement, et prénexe supposé
@@ -387,7 +491,7 @@ def decision(g: Formula) -> bool:
 
     f1 = tirerNegation(f0)
     f1 = elimNegation(f1)
-    print("\nAprès éliminations des négations :", f1)
+    print("\nAprès éliminations des négations à l'intérieur :", f1)
 
     # Étape 2 : Mettre en forme normale disjonctive
     f2 = toDisjonctive(f1)
@@ -397,8 +501,18 @@ def decision(g: Formula) -> bool:
     conjunctions = tirerQuantif(f2)
 
     print("\nAprès tirage des quantificateurs devant les disjonctions :")
-    for i, conj in enumerate(conjunctions, 1):
-        print(f"  Conjonction {i} :", conj)
+    affichageListeFormules(conjunctions)
+
+    # Étape 4 : Éliminer les quantificateurs inutiles
+    conjunctions = elimQuantifInutile(conjunctions)
+    print("\nAprès élimination des quantificateurs inutiles :")
+    affichageListeFormules(conjunctions)
+
+    # Étape 5 : Supprimer les comparaisons de la forme (x < x)
+    conjunctions = supXltX(conjunctions)
+    print("\nAprès suppression des comparaisons de la forme (x < x) :")
+    affichageListeFormules(conjunctions)
+
 
     return True
 

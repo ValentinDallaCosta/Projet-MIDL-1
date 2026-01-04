@@ -236,7 +236,33 @@ def test_tirerQuantif():
     for i, r in enumerate(res2, 1):
         print(f"  [{i}]", r)
     
+def test_elimQuantifInutile():
+    print("=== Test de la fonction elimQuantifInutile ===")
+    # Exemple de formule avec quantificateurs inutiles : ∃x ∃y ∃z (x = y)
+    f = exq("x", exq("y", exq("z", eqf("x", "y"))))
+    print("Formule avec quantificateurs inutiles :", f)
+    f_elim = elimQuantifInutile([f])
+    print("Formule après application de elimQuantifInutile :", f_elim[0])
 
+    # Autre exemple : ∃x ¬∃w ∃y ∃z ((x < y) ∨ (y < z))
+    f2 = exq("x", NotF(exq("w", exq("y", exq("z", disj(ltf("x", "y"), ltf("y", "z")))))))
+    print("\nAutre formule avec quantificateurs inutiles :", f2)
+    f2_elim = elimQuantifInutile([f2])
+    print("Formule après application de elimQuantifInutile :", f2_elim[0])
+
+def test_supXltX():
+    print("=== Test de la fonction supXltX (teste aussi la fonction searchXltX) ===")
+    # Exemple de formule avec une comparaison de la forme (x < x) : ∃x ∃y ( (x < x) ∨ (y < z) )
+    f = exq("x", exq("y", disj(ltf("x", "x"), ltf("y", "z"))))
+    print("Formule avec une comparaison de la forme (x < x) :", f)
+    f_sup = supXltX([f])
+    print("Formule après application de supXltX :", f_sup[0])
+
+    # Autre exemple : ∃x ∃y ( (x < y) ∨ (y < z) )
+    g = exq("x", exq("y", disj(ltf("x", "y"), ltf("y", "z"))))
+    print("\nAutre formule sans comparaison de la forme (x < x) :", g)
+    g_sup = supXltX([g])
+    print("Formule après application de supXltX :", g_sup[0])
 
 
 
@@ -248,12 +274,13 @@ def test_global():
     print(" 1 - Test de base")
     print(" 2 - Test des fonctions vérifiant les hypothèses pour la procédure de décision")
     print(" 3 - Test des fonctions de prétraitement des formules")
+    print(" 4 - Test des fonctions de suppression de variable")
 
 
-    choice = input("Entrez 1, 2 ou 3: ")
-    while choice not in ["1", "2", "3"]:
-        print("Choix invalide. Veuillez entrer 1, 2 ou 3.")
-        choice = input("Entrez 1, 2 ou 3 : ")
+    choice = input("Entrez 1, 2, 3 ou 4: ")
+    while choice not in ["1", "2", "3", "4"]:
+        print("Choix invalide. Veuillez entrer 1, 2, 3 ou 4.")
+        choice = input("Entrez 1, 2, 3 ou 4 : ")
 
     if choice == "1":
         print("Début des tests de base\n")
@@ -276,3 +303,8 @@ def test_global():
         test_isDisjonctive()
         print("\n")
         test_tirerQuantif()
+    elif choice == "4":
+        print("Début des tests des fonctions de suppression de variable\n")
+        test_elimQuantifInutile()
+        print("\n")
+        test_supXltX()
