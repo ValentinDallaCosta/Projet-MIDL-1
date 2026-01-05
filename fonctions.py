@@ -146,10 +146,72 @@ def allVarInFormula(f: Formula) -> list:
     else:
         return []
 
-def affichageListeFormules(formules: list):
+def affichageListeFormules(formules: list, prefix="") -> None:
     """Affiche une liste de formules."""
     for i, f in enumerate(formules, 1):
-        print(f"  Formule {i} :", f)
+        print(f"{prefix}Formule {i} :", f)
+
+def affichageListeTermes(terms: list, prefix="") -> None:
+    """Affiche une liste de termes à la suite espacé d'un tiret"""
+    print(f"    Termes de la forme {prefix}", end="")
+    for term in terms:
+        # Affichage à la suite avec un tiret
+        print(f" - {term}", end="")
+    print()
+
+def extractxltu(f: Formula, x: str) -> list:
+    """Extrait les termes de la formule f sans quantificateurs tel que x < u pour tout u."""
+    if isinstance(f, BoolOpF):
+        terms = extractxltu(f.left, x) + extractxltu(f.right, x)
+    elif isinstance(f, NotF):
+        terms = extractxltu(f.sub, x)
+    elif isinstance(f, QuantifF):
+        terms = extractxltu(f.body, x)
+    elif isinstance(f, ComparF) and f.op == Lt():
+        if f.left == x:
+            terms = [f]
+        else:
+            terms = []
+    else:
+        terms = []
+
+    return terms
+
+def extractultx(f: Formula, x: str) -> list:
+    """Extrait les termes de la formule f sans quantificateurs tel que u < x pour tout u."""
+    if isinstance(f, BoolOpF):
+        terms = extractultx(f.left, x) + extractultx(f.right, x)
+    elif isinstance(f, NotF):
+        terms = extractultx(f.sub, x)
+    elif isinstance(f, QuantifF):
+        terms = extractultx(f.body, x)
+    elif isinstance(f, ComparF) and f.op == Lt():
+        if f.right == x:
+            terms = [f]
+        else:
+            terms = []
+    else:
+        terms = []
+
+    return terms
+
+def extracteqx(f: Formula, x: str) -> list:
+    """Extrait les termes de la formule f sans quantificateurs tel que w = x ou x = w pour tout w."""
+    if isinstance(f, BoolOpF):
+        terms = extracteqx(f.left, x) + extracteqx(f.right, x)
+    elif isinstance(f, NotF):
+        terms = extracteqx(f.sub, x)
+    elif isinstance(f, QuantifF):
+        terms = extracteqx(f.body, x)
+    elif isinstance(f, ComparF):
+        if f.op == Eq() and (f.left == x or f.right == x):
+            terms = [f]
+        else:
+            terms = []
+    else:
+        terms = []
+
+    return terms
 
 #---Fonctions permettant de vérifier les hypothèse pour la procédure de décision---#
 
@@ -458,6 +520,24 @@ def supXltX(conjonctions: list) -> list:
 
     return returned_conjonctions
 
+def regrouperTermes(formules: list, x: str) -> list:
+    """regrouper les termes de ψ en : (∧i x ≺ui) ∧ (∧j vj ≺x) ∧ (∧k wk = x) ∧ χ avec x /∈fv(χ)"""
+    
+    # Pour chaque formule de la liste on crée les listes de termes
+    return_formules = []
+    for f in formules:
+        body, quantifiers = extraireQuantificateurs(f)
+
+        less_than_terms = extractxltu(body, x)
+        greater_than_terms = extractultx(body, x)
+        equal_terms = extracteqx(body, x)
+
+        # On récupère le reste de la formule sans les termes extraits
+        other_terms = body
+        # TODO : enlever les termes extraits de other_terms
+
+        return_formules.append([quantifiers,less_than_terms, greater_than_terms, equal_terms, other_terms])
+    return return_formules
 
 
 

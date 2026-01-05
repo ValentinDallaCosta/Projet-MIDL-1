@@ -264,7 +264,28 @@ def test_supXltX():
     g_sup = supXltX([g])
     print("Formule après application de supXltX :", g_sup[0])
 
+def test_regrouperTermes():
+    print("=== Test de la fonction regrouperTermes ===")
+    # Exemple de formule : ∃x ∃y ∃z ( (x < y) ∧ (y < x) ∧ (y = x) ∧ (u < v) ) et ∃a ∃b ( (x < a) ∧ (b < x) ∧ (x = b) )
+    f = exq("x", exq("y", exq("z", conj(conj(conj(ltf("x", "y"), ltf("y", "x")), eqf("y", "x")), ltf("u", "v")))))
+    f2 = exq("a", exq("b", conj(conj(ltf("x", "a"), ltf("b", "x")), eqf("x", "b"))))
+    print("Formule 1 :", f, "\nFormule 2 :", f2)
+    grouped_terms = regrouperTermes([f, f2], "x")
 
+    print("Résultat de regrouperTermes avec x comme variable de référence :")
+
+    for i, formule in enumerate(grouped_terms, 1):
+        print(f"  Formule {i} :")
+        print(f"    Quantificateurs :")
+        print("      - ", reconstruireAvecQuantificateurs("", formule[0]))
+
+        affichageListeTermes(formule[1], prefix="x < u :")
+
+        affichageListeTermes(formule[2], prefix="u < x :")
+
+        affichageListeTermes(formule[3], prefix="w = x :")
+        print(f"    Autres termes :", formule[4])
+        print()
 
 
 def test_global():
@@ -308,3 +329,5 @@ def test_global():
         test_elimQuantifInutile()
         print("\n")
         test_supXltX()
+        print("\n")
+        test_regrouperTermes()
