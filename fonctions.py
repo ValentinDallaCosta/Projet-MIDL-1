@@ -591,30 +591,33 @@ def supDeVariables(formules: list, x: str) -> list:
     """Applique la fin de la procédure de décision pour supprimer la variable x sur une liste de fonction"""
     return_formules = []
     for f in formules:
-        # On triate les différent cas:
+        # On traite les différent cas:
         # Cas 1 : La formule contient (x < x) -> on remplace par False
         if searchXltX(f):
-            f_return = ConstF(False)
+            print("dgdfgfgd")
+            body, quantifiers = extraireQuantificateurs(f)
+            f_return = [quantifiers] + [ConstF(False)]
             return_formules.append(f_return)
-        
-        # Sinon cas 2 : On regroupe les termes par realtion par rapport à une variable x
+
+        # Sinon cas 2 : On regroupe les termes par relation par rapport à une variable x
         else:
             x = allVarInFormula(f)[0]  # On prend la première variable de la formule
-            f_return = regrouperTermes(f, x)
+            terms = regrouperTermes(f, x)
 
             # Maintenant : Si on a des égalités, on remplace x par w
-            if f_return[3]:  # Si la liste des égalités n'est pas vide
-                terms = xeqw(f_return, x)
+            if terms[3]:  # Si la liste des égalités n'est pas vide
+                terms = xeqw(terms, x)
 
             # Sinon si on a x<u1 et u2<x, on remplace par u1<u2
-            elif f_return[1] and f_return[2]: # Si on a des termes de la forme x<u et u<x
-                new_terms = simplifierInegalites(f_return[1], f_return[2])
-                terms = new_terms + f_return[4]  # On ajoute le reste des termes
+            elif terms[1] and terms[2]: # Si on a des termes de la forme x<u et u<x
+                new_terms = simplifierInegalites(terms[1], terms[2])
+                terms = new_terms + terms[4]  # On ajoute le reste des termes
 
             # Sinon si on a que des x<u1 ou u2<x, on peut juste garder les termes où x n'apparaît plus
             else:
-                terms = f_return[4]
-        return_formules.append(terms)
+                terms = terms[4]
+        
+            return_formules.append(terms)
                 
     return return_formules
         
@@ -663,20 +666,20 @@ def decision(g: Formula) -> bool:
     print("\nAprès suppression de la variable x dans chaque conjonction :")
     
     for i, formule in enumerate(conjunctions_after_sup, 1):
-        if isinstance(formule, ConstF):
-            print(f"  Formule {i} : {formule}")
-            continue
-        print(f"  Formule {i} :")
-        print(f"    Quantificateurs :")
-        print("      - ", reconstruireAvecQuantificateurs("", formule[0]))
+        if isinstance(formule[1], ConstF):
+            print(f"  Formule {i} : {reconstruireAvecQuantificateurs(formule[1], formule[0])}")
+        else:
+            print(f"  Formule {i} :")
+            print(f"    Quantificateurs :")
+            print("      - ", reconstruireAvecQuantificateurs("", formule[0]))
 
-        affichageListeTermes(formule[1], prefix="x < u :")
+            affichageListeTermes(formule[1], prefix="x < u :")
 
-        affichageListeTermes(formule[2], prefix="u < x :")
+            affichageListeTermes(formule[2], prefix="u < x :")
 
-        affichageListeTermes(formule[3], prefix="w = x :")
-        print(f"    Autres termes :", formule[4])
-        print()
+            affichageListeTermes(formule[3], prefix="w = x :")
+            print(f"    Autres termes :", formule[4])
+            print()
 
 
 
