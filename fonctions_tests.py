@@ -250,19 +250,17 @@ def test_elimQuantifInutile():
     f2_elim = elimQuantifInutile([f2])
     print("Formule après application de elimQuantifInutile :", f2_elim[0])
 
-def test_supXltX():
-    print("=== Test de la fonction supXltX (teste aussi la fonction searchXltX) ===")
-    # Exemple de formule avec une comparaison de la forme (x < x) : ∃x ∃y ( (x < x) ∨ (y < z) )
-    f = exq("x", exq("y", disj(ltf("x", "x"), ltf("y", "z"))))
-    print("Formule avec une comparaison de la forme (x < x) :", f)
-    f_sup = supXltX([f])
-    print("Formule après application de supXltX :", f_sup[0])
+def test_searchXltX():
+    print("=== Test de la fonction searchXltX ===")
+    # Exemple de formule contenant (x < x) : ∃x ( (x < x) ∨ (y < z) )
+    f1 = exq("x", disj(ltf("x", "x"), ltf("y", "z")))
+    print("Formule f1 :", f1)
+    print("searchXltX(f1) =", searchXltX(f1))
 
-    # Autre exemple : ∃x ∃y ( (x < y) ∨ (y < z) )
-    g = exq("x", exq("y", disj(ltf("x", "y"), ltf("y", "z"))))
-    print("\nAutre formule sans comparaison de la forme (x < x) :", g)
-    g_sup = supXltX([g])
-    print("Formule après application de supXltX :", g_sup[0])
+    # Exemple de formule ne contenant pas (x < x) : ∃x ( (x < y) ∨ (y < z) )
+    f2 = exq("x", disj(ltf("x", "y"), ltf("y", "z")))
+    print("Formule f2 :", f2)
+    print("searchXltX(f2) =", searchXltX(f2))
 
 def test_regrouperTermes():
     print("=== Test de la fonction regrouperTermes ===")
@@ -270,7 +268,9 @@ def test_regrouperTermes():
     f = exq("x", exq("y", exq("z", conj(conj(conj(ltf("x", "y"), ltf("y", "x")), eqf("y", "x")), ltf("u", "v")))))
     f2 = exq("a", exq("b", conj(conj(ltf("x", "a"), ltf("b", "x")), eqf("x", "b"))))
     print("Formule 1 :", f, "\nFormule 2 :", f2)
-    grouped_terms = regrouperTermes([f, f2], "x")
+    grouped_terms1 = regrouperTermes(f, "x")
+    grouped_terms2 = regrouperTermes(f2, "x")
+    grouped_terms = [grouped_terms1, grouped_terms2]
 
     print("Résultat de regrouperTermes avec x comme variable de référence :")
 
@@ -287,6 +287,29 @@ def test_regrouperTermes():
         print(f"    Autres termes :", formule[4])
         print()
 
+def test_xeqw():
+    print("=== Test de la fonction xeqw ===")
+    # Exemple avec les formules de test_regroupertermes
+    # Exemple de formule : ∃x ∃y ∃z ( (x < y) ∧ (y < x) ∧ (y = x) ∧ (u < v) ) et ∃a ∃b ( (x < a) ∧ (b < x) ∧ (x = b) )
+    f = exq("x", exq("y", exq("z", conj(conj(conj(ltf("x", "y"), ltf("y", "x")), eqf("y", "x")), ltf("u", "v")))))
+    f2 = exq("a", exq("b", conj(conj(ltf("x", "a"), ltf("b", "x")), eqf("x", "b"))))
+    print("Formule 1 :", f, "\nFormule 2 :", f2)
+    xeqw_result1 = xeqw(regrouperTermes(f, "x"), "x")
+    xeqw_result2 = xeqw(regrouperTermes(f2, "x"), "x")
+    xeqw_result = [xeqw_result1, xeqw_result2]
+
+    print("Résultat de xeqw avec x comme variable de référence sur les formules de test_regrouperTermes() :")
+    for i, formule in enumerate(xeqw_result, 1):
+        print(f"    Quantificateurs :")
+        print("      - ", reconstruireAvecQuantificateurs("", formule[0]))
+        
+        affichageListeTermes(formule[1], prefix="x < u :")
+
+        affichageListeTermes(formule[2], prefix="u < x :")
+
+        affichageListeTermes(formule[3], prefix="w = x :")
+        print(f"    Autres termes :", formule[4])
+        print()
 
 def test_global():
     print("=== Tests des fonctions sur les formules ===")
@@ -328,6 +351,8 @@ def test_global():
         print("Début des tests des fonctions de suppression de variable\n")
         test_elimQuantifInutile()
         print("\n")
-        test_supXltX()
+        test_searchXltX()
         print("\n")
         test_regrouperTermes()
+        print("\n")
+        test_xeqw()
