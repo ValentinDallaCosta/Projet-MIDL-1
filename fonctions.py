@@ -1,5 +1,7 @@
 from syntax import *
 from typing import Tuple
+import sys
+import os
 
 # Fonction récursive simple : inversion des opérateurs
 def dualOp(op: BoolOp) -> BoolOp:
@@ -131,17 +133,19 @@ def reconstruireAvecQuantificateurs(body: Formula, quantifiers: list) -> Formula
             body = QuantifF(q.q, q.var, body)
     return body
 
-def reconstruireAvecTermes(terms: list, quantifiers: list) -> Formula:
+def reconstruireAvecTermes(terms: list) -> Formula:
     """Reconstruit une formule à partir d'une liste de listes de termes et de quantificateurs."""
-    # On construit la formule à partir des termes
-    body = None
-    for term in terms:
-        if body is None:
-            body = term
-        else:
-            body = BoolOpF(body, Conj(), term)
 
-    return reconstruireAvecQuantificateurs(body, quantifiers)
+    # On construit la formule à partir des termes
+    # On concatène toutes les listes de termes
+    all_terms = terms[1] + terms[2] + terms[3] + terms[4]
+    if not all_terms:
+        body = ConstF(True)  # Si pas de termes, on retourne True
+    else:
+        body = all_terms[0]
+        for term in all_terms[1:]:
+            body = BoolOpF(body, Conj(), term)  # On construit une conjonction de tous les termes
+    return reconstruireAvecQuantificateurs(body, terms[0])
 
 def allVarInFormula(f: Formula) -> list:
     """Retourne toutes les variables présentes dans une formule."""
@@ -165,11 +169,21 @@ def affichageListeFormules(formules: list, prefix="") -> None:
 
 def affichageListeTermes(terms: list, prefix="") -> None:
     """Affiche une liste de termes à la suite espacé d'un tiret"""
-    print(f"    Termes de la forme {prefix}", end="")
+    print(f"    {prefix}", end="")
     for term in terms:
         # Affichage à la suite avec un tiret
-        print(f" - {term}", end="")
+        print(f" {term} -", end="")
     print()
+
+def affichageFormuleAvecTermes(formule: list) -> None:
+    if formule[1] != []:
+        affichageListeTermes(formule[1],"     Termes de la forme x < u :")
+    if formule[2] != []:
+        affichageListeTermes(formule[2],"     Termes de la forme u < x :")
+    if formule[3] != []:
+        affichageListeTermes(formule[3],"     Termes de la forme x = u :")
+    if formule[4] != []:
+        affichageListeTermes(formule[4],"     Autres termes :")
 
 def extractxltu(f: Formula, x: str) -> list:
     """Extrait les termes de la formule f sans quantificateurs tel que x < u pour tout u."""
@@ -528,8 +542,21 @@ def regrouperTermes(f: Formula, x: str) -> list:
     equal_terms = extracteqx(body, x)
 
     # On récupère le reste de la formule sans les termes extraits
-    other_terms = body
-    # TODO : enlever les termes extraits de other_terms
+    def removeExtractedTerms(f: Formula) -> list:
+        # Que deux tests car on a déjà extrait les quantificateurs et les négations dans le corps de la formule
+        if isinstance(f, BoolOpF):
+            left = removeExtractedTerms(f.left)
+            right = removeExtractedTerms(f.right)
+            return [left, right] if left and right else left or right
+        elif isinstance(f, ComparF):
+            if (f in less_than_terms) or (f in greater_than_terms) or (f in equal_terms):
+                return []  # On supprime ce terme
+            else:
+                return [f]
+        else:
+            return [f]
+    other_terms = removeExtractedTerms(body)
+
 
     return [quantifiers,less_than_terms, greater_than_terms, equal_terms, other_terms]
 
@@ -541,10 +568,16 @@ def xeqw(f: Formula, x: str) -> list:
     
     # On récupère la valeur à laquelle x est égal
     firsteq = f[3][0]
-    if firsteq.left == x:
-        w = firsteq.right
-    else:
-        w = firsteq.left
+    while w is None:
+        if firsteq.left == x and firsteq.right == x:
+            w = None
+            # Si x = x on supprime cette égalité et on passe à la suivante
+            f[3].remove(firsteq)
+            if not f[3]:  # Si la liste des égalités est vide, on arrête
+                break
+            firsteq = f[3][0]  # On passe à l'égalité suivante
+        else:
+            w = firsteq.right if firsteq.left == x else firsteq.left
     
     # On remplace x par w dans les autres termes
     new_lessthan_terms = []
@@ -561,12 +594,10 @@ def xeqw(f: Formula, x: str) -> list:
         new_greaterthan_terms.append(ComparF(new_left, Lt(), new_right))
     list_terme.append(new_greaterthan_terms)
 
-    new_equal_terms = []
     for term in f[3]:
-        new_left = w if term.left == x else term.left
-        new_right = w if term.right == x else term.right
-        new_equal_terms.append(ComparF(new_left, Eq(), new_right))
-    list_terme.append(new_equal_terms)
+        # On supprime le terme à l'avance toute les égalités avec la variable x car elle deviendrons w = w.
+        f[3].remove(term) if term.left == x or term.right == x else term.left
+    list_terme.append(f[3])
 
     # Pas besoin de changer le reste de la formule car x n'y apparait pas
     list_terme.append(f[4])
@@ -587,38 +618,59 @@ def simplifierInegalites(less_than_terms: list, greater_than_terms: list) -> lis
 
 #---Programme principal : Décision d'une fonction---#
 
-def supDeVariables(formules: list, x: str) -> list:
+def supDeVariables(formules: list, x: str, affichage: bool) -> list:
     """Applique la fin de la procédure de décision pour supprimer la variable x sur une liste de fonction"""
+    if not affichage:
+        old_stdout = sys.stdout
+        sys.stdout = open(os.devnull, 'w')  # stop affichage
+
     return_formules = []
-    for f in formules:
+    for i, f in enumerate(formules, 1):
         # On traite les différent cas:
         # Cas 1 : La formule contient (x < x) -> on remplace par False
+
+        print(f"Formule {i} :")
+        print("    Nous recherchons si la relation x < x est présente :")
         if searchXltX(f):
-            print("dgdfgfgd")
-            body, quantifiers = extraireQuantificateurs(f)
+            print(f"    C'est le cas, la formule devient donc False et la procédure ce termine.")
+            quantifiers = extraireQuantificateurs(f)[1]
             f_return = [quantifiers] + [ConstF(False)]
             return_formules.append(f_return)
 
         # Sinon cas 2 : On regroupe les termes par relation par rapport à une variable x
         else:
+            print("    Ce n'est pas le cas, nous allons donc regrouper les relations identiques de notre formule.")
             x = allVarInFormula(f)[0]  # On prend la première variable de la formule
+            print(f"""    Nous prenons la variable "{x}" comme repère.""")
             terms = regrouperTermes(f, x)
+            print("    Voici la liste des termes :")
+            affichageFormuleAvecTermes(terms)
 
             # Maintenant : Si on a des égalités, on remplace x par w
             if terms[3]:  # Si la liste des égalités n'est pas vide
+                print(f"    Il y a des égalités présentent alors on remplace par u et on la supprime de la formule (car u = u -> True) :")
                 terms = xeqw(terms, x)
 
             # Sinon si on a x<u1 et u2<x, on remplace par u1<u2
             elif terms[1] and terms[2]: # Si on a des termes de la forme x<u et u<x
+                print(f"    Il y a pas d'égalité mais x < u1 et u2 < x, on peut donc simplifier :")
                 new_terms = simplifierInegalites(terms[1], terms[2])
                 terms = new_terms + terms[4]  # On ajoute le reste des termes
 
             # Sinon si on a que des x<u1 ou u2<x, on peut juste garder les termes où x n'apparaît plus
             else:
+                print("    Il y a seulement ou aucune relation <, on garde donc que les autres termes déjà sans x :")
                 terms = terms[4]
-        
+            print(f"    Voici donc la nouvelle liste de termes sans la variable {x} :")
+            affichageFormuleAvecTermes(terms)
+
             return_formules.append(terms)
-                
+
+    if not affichage:
+        # Restauration de stdout
+        sys.stdout.close()
+        sys.stdout = old_stdout  # reprise affichage
+
     return return_formules
         
 
@@ -662,26 +714,31 @@ def decision(g: Formula) -> bool:
     affichageListeFormules(conjunctions)
 
     # Étape 5 : Supprimer la variable x dans chaque conjonction
-    conjunctions_after_sup = supDeVariables(conjunctions, allVarInFormula(f)[0])
-    print("\nAprès suppression de la variable x dans chaque conjonction :")
-    
+    print("\nSuppression de la variable x dans chaque conjonction :")
+    print("Voulez-vous avec détail le déroulé de cette suppression ?")
+    choice = input("1 : oui / 2 : non : ")
+    while choice not in ["1", "2"]:
+        print("Choix invalide. Veuillez entrer 1 ou 2 :")
+        choice = input("")
+
+    if choice == "1":
+        conjunctions_after_sup = supDeVariables(conjunctions, allVarInFormula(f)[0],True)
+    else:
+        conjunctions_after_sup = supDeVariables(conjunctions, allVarInFormula(f)[0],False)
+
+    # On reconstruit nos formules pour un affichage plus clair :
+    formule_after_sup = []
     for i, formule in enumerate(conjunctions_after_sup, 1):
         if isinstance(formule[1], ConstF):
-            print(f"  Formule {i} : {reconstruireAvecQuantificateurs(formule[1], formule[0])}")
+            formule_after_sup.append(reconstruireAvecQuantificateurs(formule[1], formule[0]))
         else:
-            print(f"  Formule {i} :")
-            print(f"    Quantificateurs :")
-            print("      - ", reconstruireAvecQuantificateurs("", formule[0]))
+            formule_after_sup.append(reconstruireAvecTermes(conjunctions_after_sup[i-1]))
+    
+    print("Formule après suppression d'une variable (et sans les quatificateurs inutiles):")
+    affichageListeFormules(formule_after_sup, "    ")
 
-            affichageListeTermes(formule[1], prefix="x < u :")
-
-            affichageListeTermes(formule[2], prefix="u < x :")
-
-            affichageListeTermes(formule[3], prefix="w = x :")
-            print(f"    Autres termes :", formule[4])
-            print()
-
-
+    formule_after_sup = elimQuantifInutile(formule_after_sup)
+    affichageListeFormules(formule_after_sup, "    ")
 
     return True
 
