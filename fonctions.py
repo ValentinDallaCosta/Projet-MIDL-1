@@ -184,6 +184,63 @@ def affichageFormuleAvecTermes(formule: list) -> None:
         affichageListeTermes(formule[3],"     Termes de la forme x = u :")
     if formule[4] != []:
         affichageListeTermes(formule[4],"     Autres termes :")
+    if formule == [formule[0],[],[],[],[]]:
+        print("             La formule est vide, donc True")
+
+
+def input_formula_interactive() -> Formula:
+    """Construit une formule via des invites terminales et la retourne.
+    Types disponibles : constante, comparaison, négation, opérateur booléen, quantificateur.
+    """
+    def choose(prompt: str, choices: dict):
+        print(prompt)
+        for k, v in choices.items():
+            print(f" {k} - {v}")
+        c = input("Choix: ").strip()
+        while c not in choices:
+            print("Choix invalide.")
+            c = input("Choix: ").strip()
+        return c
+
+    def build():
+        kind = choose("Type de formule :", {
+            "1": "Constante (True/False)",
+            "2": "Comparaison (x = y ou x < y)",
+            "3": "Négation (¬F)",
+            "4": "Opérateur booléen (F ∧ G ou F ∨ G)",
+            "5": "Quantificateur (∀x.F ou ∃x.F)"
+        })
+
+        if kind == "1":
+            val = choose("Valeur de la constante:", {"1": "True", "2": "False"})
+            return ConstF(val == "1")
+        if kind == "2":
+            left = input("Nom de l'identifiant gauche (ex: x): ").strip()
+            op = choose("Opérateur de comparaison:", {"1": "=", "2": "<"})
+            right = input("Nom de l'identifiant droit (ex: y): ").strip()
+            return ComparF(left, Eq() if op == "1" else Lt(), right)
+        if kind == "3":
+            print("Saisir la sous-formule pour la négation :")
+            sub = build()
+            return NotF(sub)
+        if kind == "4":
+            print("Saisir la formule gauche :")
+            left = build()
+            op = choose("Opérateur booléen:", {"1": "∧", "2": "∨"})
+            print("Saisir la formule droite :")
+            right = build()
+            return BoolOpF(left, Conj() if op == "1" else Disj(), right)
+        if kind == "5":
+            q = choose("Quantificateur:", {"1": "∀ (All)", "2": "∃ (Exist)"})
+            var = input("Nom de la variable liée (ex: x): ").strip()
+            print("Saisir le corps du quantificateur :")
+            body = build()
+            return QuantifF(All() if q == "1" else Ex(), var, body)
+
+    print("--- Construction interactive d'une formule ---")
+    f = build()
+    print("Formule saisie :", f)
+    return f
 
 def extractxltu(f: Formula, x: str) -> list:
     """Extrait les termes de la formule f sans quantificateurs tel que x < u pour tout u."""
@@ -507,21 +564,27 @@ def elimQuantifInutile(conjonctions: list) -> list:
             if isinstance(q, NotF):
                 # On gère le cas des quantificateurs négatifs
                 inner_q = q.sub
-                if inner_q.var in vars_in_formula:
-                    if isNot:
+                if isNot:
+                    if inner_q.var in vars_in_formula:
+                        # Cela fait deux négations donc on les supprime en ajoutant seuleument le quantificateur
                         useful_quantifiers.append(inner_q)
-                        isNot = False
-                    else:
+                    # Il n'y a donc plus de négation en attente
+                    isNot = False
+                else:
+                    if inner_q.var in vars_in_formula:
+                        # On ajoute le quantificateur avec sa négation
                         useful_quantifiers.append(q)
-                else :
-                    isNot = True
+                    else :
+                        # On ajoute pas le quantificateur mais on garde la négation
+                        isNot = True
+
             elif q.var in vars_in_formula:
                 if isNot:
                     useful_quantifiers.append(NotF(q))
                     isNot = False
                 else:
                     useful_quantifiers.append(q)
-
+        
         # On reconstruit la formule sans les quantificateurs inutiles
         if isNot:
             # Si le dernier quantificateur était inutile et précédé d'une négation, on ajoute la négation
@@ -618,7 +681,7 @@ def simplifierInegalites(less_than_terms: list, greater_than_terms: list) -> lis
 
 #---Programme principal : Décision d'une fonction---#
 
-def supDeVariables(formules: list, x: str, affichage: bool) -> list:
+def supDeVariables(formules: list, affichage: bool) -> list:
     """Applique la fin de la procédure de décision pour supprimer la variable x sur une liste de fonction"""
     if not affichage:
         old_stdout = sys.stdout
@@ -626,45 +689,53 @@ def supDeVariables(formules: list, x: str, affichage: bool) -> list:
 
     return_formules = []
     for i, f in enumerate(formules, 1):
-        # On traite les différent cas:
-        # Cas 1 : La formule contient (x < x) -> on remplace par False
-
-        print(f"Formule {i} :")
-        print("    Nous recherchons si la relation x < x est présente :")
-        if searchXltX(f):
-            print(f"    C'est le cas, la formule devient donc False et la procédure ce termine.")
-            quantifiers = extraireQuantificateurs(f)[1]
-            f_return = [quantifiers] + [ConstF(False)]
-            return_formules.append(f_return)
-
-        # Sinon cas 2 : On regroupe les termes par relation par rapport à une variable x
+        body, quantifiers = extraireQuantificateurs(f)
+        if (isinstance(body,NotF) and isinstance(body.sub,ConstF)) or ((not isinstance(body,NotF)) and isinstance(body,ConstF)):
+            print(f"Formule {i} : Notre formule est déjà une constante donc on n'a plus rien a supprimer.")
+            return_formules.append(f)
+            
         else:
-            print("    Ce n'est pas le cas, nous allons donc regrouper les relations identiques de notre formule.")
-            x = allVarInFormula(f)[0]  # On prend la première variable de la formule
-            print(f"""    Nous prenons la variable "{x}" comme repère.""")
-            terms = regrouperTermes(f, x)
-            print("    Voici la liste des termes :")
-            affichageFormuleAvecTermes(terms)
+            # On traite les différent cas:
+            # Cas 1 : La formule contient (x < x) -> on remplace par False
 
-            # Maintenant : Si on a des égalités, on remplace x par w
-            if terms[3]:  # Si la liste des égalités n'est pas vide
-                print(f"    Il y a des égalités présentent alors on remplace par u et on la supprime de la formule (car u = u -> True) :")
-                terms = xeqw(terms, x)
+            print(f"Formule {i} :")
+            print("    Nous recherchons si la relation x < x est présente :")
+            if searchXltX(f):
+                print(f"    C'est le cas, la formule devient donc False et la procédure ce termine.")
+                terms = [quantifiers] + [ConstF(False)]
 
-            # Sinon si on a x<u1 et u2<x, on remplace par u1<u2
-            elif terms[1] and terms[2]: # Si on a des termes de la forme x<u et u<x
-                print(f"    Il y a pas d'égalité mais x < u1 et u2 < x, on peut donc simplifier :")
-                new_terms = simplifierInegalites(terms[1], terms[2])
-                terms = new_terms + terms[4]  # On ajoute le reste des termes
-
-            # Sinon si on a que des x<u1 ou u2<x, on peut juste garder les termes où x n'apparaît plus
+            # Sinon cas 2 : On regroupe les termes par relation par rapport à une variable x
             else:
-                print("    Il y a seulement ou aucune relation <, on garde donc que les autres termes déjà sans x :")
-                terms = terms[4]
-            print(f"    Voici donc la nouvelle liste de termes sans la variable {x} :")
-            affichageFormuleAvecTermes(terms)
+                print("    Ce n'est pas le cas, nous allons donc regrouper les relations identiques de notre formule.")
+                x = allVarInFormula(f)[0]  # On prend la première variable de la formule
+                print(f"""    Nous prenons la variable "{x}" comme repère.""")
+                terms = regrouperTermes(f, x)
+                print("    Voici la liste des termes :")
+                affichageFormuleAvecTermes(terms)
 
-            return_formules.append(terms)
+                # Maintenant : Si on a des égalités, on remplace x par w
+                if terms[3]:  # Si la liste des égalités n'est pas vide
+                    print(f"    Il y a des égalités présentent alors on remplace par u et on la supprime de la formule (car u = u -> True) :")
+                    terms = xeqw(terms, x)
+
+                # Sinon si on a x<u1 et u2<x, on remplace par u1<u2
+                elif terms[1] and terms[2]: # Si on a des termes de la forme x<u et u<x
+                    print(f"    Il y a pas d'égalité mais {x} < u1 et u2 < {x}, on peut donc simplifier :")
+                    new_terms = simplifierInegalites(terms[1], terms[2])
+                    terms = [quantifiers,new_terms,[],[],terms[4]]  # On ajoute le reste des termes
+
+                # Sinon si on a que des x<u1 ou u2<x, on peut juste garder les termes où x n'apparaît plus
+                else:
+                    print(f"    Il y a seulement une ou aucune relation <, on garde donc que les autres termes déjà sans {x} :")
+                    terms = [quantifiers,[],[],[],terms[4]]
+                print(f"    Voici donc la nouvelle liste de termes sans la variable {x} :")
+                affichageFormuleAvecTermes(terms)
+
+            # On reconstruit nos formules à la fin de la suppression de variable :
+            if isinstance(terms[1], ConstF):
+                return_formules.append(reconstruireAvecQuantificateurs(terms[1], terms[0]))
+            else:
+                return_formules.append(reconstruireAvecTermes(terms))
 
     if not affichage:
         # Restauration de stdout
@@ -714,40 +785,38 @@ def decision(g: Formula) -> bool:
     affichageListeFormules(conjunctions)
 
     # Étape 5 : Supprimer la variable x dans chaque conjonction
-    print("\nSuppression de la variable x dans chaque conjonction :")
-    print("Voulez-vous avec détail le déroulé de cette suppression ?")
-    choice = input("1 : oui / 2 : non : ")
-    while choice not in ["1", "2"]:
+    print("Voulez-vous procéder à la suppression d'une variable ?")
+    reponse = input("1 : oui / 2 : non : ")
+    while reponse not in ["1", "2"]:
         print("Choix invalide. Veuillez entrer 1 ou 2 :")
-        choice = input("")
+        reponse = input("")
 
-    if choice == "1":
-        conjunctions_after_sup = supDeVariables(conjunctions, allVarInFormula(f)[0],True)
-    else:
-        conjunctions_after_sup = supDeVariables(conjunctions, allVarInFormula(f)[0],False)
+    while reponse:
+        print("\nSuppression d'une variable x dans chaque conjonction :")
+        print("Voulez-vous avec détail le déroulé de cette suppression ?")
+        choice = input("1 : oui / 2 : non : ")
+        while choice not in ["1", "2"]:
+            print("Choix invalide. Veuillez entrer 1 ou 2 :")
+            choice = input("")
 
-    # On reconstruit nos formules pour un affichage plus clair :
-    formule_after_sup = []
-    for i, formule in enumerate(conjunctions_after_sup, 1):
-        if isinstance(formule[1], ConstF):
-            formule_after_sup.append(reconstruireAvecQuantificateurs(formule[1], formule[0]))
+        if choice == "1":
+            conjunctions = supDeVariables(conjunctions,True)
         else:
-            formule_after_sup.append(reconstruireAvecTermes(conjunctions_after_sup[i-1]))
-    
-    print("Formule après suppression d'une variable (et sans les quatificateurs inutiles):")
-    affichageListeFormules(formule_after_sup, "    ")
+            conjunctions = supDeVariables(conjunctions,False)
+        
+        print("Formule après suppression d'une variable et sans les quatificateurs inutiles:")
+        formule_after_sup = elimQuantifInutile(conjunctions)
+        affichageListeFormules(formule_after_sup, "    ")
 
-    formule_after_sup = elimQuantifInutile(formule_after_sup)
-    affichageListeFormules(formule_after_sup, "    ")
-
+        print("Voulez-vous procéder à la suppression d'une autre variable ?")
+        reponse = input("1 : oui / 2 : non : ")
+        while reponse not in ["1", "2"]:
+            print("Choix invalide. Veuillez entrer 1 ou 2 :")
+            reponse = input("")
     return True
 
-
-
-
-
-
     # Étape 5 : Vérification de la validité
+    isFormuleValide(formule_after_sup)
     if isinstance(f, ConstF):
         return f.val
     else:
