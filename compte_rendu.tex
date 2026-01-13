@@ -135,7 +135,11 @@ Dans cette partie nous allons enfin nous focaliser sur la résolution de notre f
 
 Tout d'abord commençons par les deux premières étapes qui seront les plus simples, la première est de retirer tout les quantificateurs inutiles de notre formule, c'est à dire ceux qui ne concerne aucune variable de notre sous-formule. Par exemple ($\exists y.$) dans $\exists x. \exists y. x = x$. Pour cela nous créerons la fonction \texttt{elimQuantifInutile(f)} qui nous renverras notre liste avec chaque sous-formules démunie de ses quantificateurs inutiles.
 
-Notre deuxième étapes sera de rechercher exactement cette relation (x < x) dans chacune des sous-formules, si elle est présente alors celle-ci sera modifié pour devenir : $\bot$ On nommera cette nouvelle fonction \texttt{supXltX(list)}.
+Notre deuxième étapes sera de rechercher exactement cette relation (x < x) dans chacune des sous-formules, si elle est présente alors celle-ci sera modifié pour devenir : $\bot$ On nommera cette nouvelle fonction \texttt{supXltX(list)}.\\
+
+Par la suite nous devrons utiliser une implémentation et méthodologie différente, celle-ci est comme les autres décrites dans partie \textbf{Représentation des données}.
+
+Nous sommes donc ici dans le cas où il n'y a pas la relation x < x dans notre formule, nous allons donc regrouper en 4 parties les 
 
 \subsection{Analyse des fonctions}
 Voici la liste des fonctions actuellement implantées dans les fichiers (\texttt{fonctions\dots.py}) ainsi que leur fonctionnement :
@@ -148,7 +152,7 @@ Voici la liste des fonctions actuellement implantées dans les fichiers (\texttt
     \item \textbf{freeVar(f)} : Parcourt récursivement l'arbre syntaxique en ajoutant les variables liées dans un ensemble quelle renvoie ensuite.
     \item \textbf{extraireQuantificateurs(f)} : Dans cette fonction itérative nous parcourons la formule dans une boucle "while" comportant 3 tests (il y a un quantificateur, un quantificateur précédé d'une négation ou deux négation à la suite). S'il y a deux négations alors on les supprime et on continue l'algorithme, sinon on ajoute dans une liste créé auparavant le quantificateur précédé ou non d'une négation.
     \item \textbf{reconstruireAvecQuantificateurs(body, quantif)} : Cette fonction plus simple recompose seulement notre formule à l'aide du corps et des quantificateurs, une boucle "for" parcoure la liste de quantificateur à l'envers et ajoute l'élément au début du corps déjà donné.
-    \item \textbf{allVarInFormula(f)} : Cette fonction nous permet de récupérer les variables de la formule, celle ci nous sera utile dans plusieurs autres fonctions comme \texttt{elimQauntifInutile(list)}. C'est une fonction récursive basée sur plusieurs tests qui soit applique la fonction sur une sous formule soit, si il y a une relation (= ou <), ajoute dans la liste renvoyée les deux variables.
+    \item \textbf{allVarInFormula(f)} : Cette fonction nous permet de récupérer les variables de la formule, celle ci nous sera utile dans plusieurs autres fonctions comme\\ \texttt{elimQauntifInutile(list)}. C'est une fonction récursive basée sur plusieurs tests qui soit applique la fonction sur une sous formule soit, si il y a une relation (= ou <), ajoute dans la liste renvoyée les deux variables.
     \item \textbf{affichageListeFormules(formules)} : Cette fonction nous servira dans le programme principal à partir de la dernière partie de notre procédure de décision, c'est à dire lorsque nous manipulons une liste de sous-formules. Elle est facilement composée d'une boucle qui parcourt la liste et en affiche son contenue avec une indexation.
 \end{itemize}
 
@@ -201,5 +205,28 @@ Ensuite nous avons penser à une suite de cette représentation qui sera possibl
 
 Pour les cas simple ces deux dictionnaires suffisent mais dès lors que nous aurons des formules constituées de $\lor$ et de $\land$ nous devrons séparer notre formule en sous formule pour les résoudre les unes après les autres. 
 Lorsque nous rencontrons un $\land$ nous pouvons mettre l'égalité ou l'inégalité dans le même dictionnaire mais si nous avons un $\lor$ il faut alors extraire les deux sous formules et créer les deux dictionnaires pour chacun afin de résoudre cela.
+
+
+
+
+\newpage
+Voici une explication courte et claire de input_formula_interactive() dans fonctions.py :
+
+Emplacement : fonction input_formula_interactive() définie dans fonctions.py.
+But : construire une instance de Formula en demandant à l'utilisateur, étape par étape, la forme désirée via le terminal.
+Structure :
+Un helper choose(prompt, choices) affiche un menu (clé → description) et boucle jusqu'à obtenir un choix valide.
+Une fonction récursive build() demande le type de formule (5 choix) puis, selon le choix, demande les informations nécessaires et construit la sous-formule :
+1 — Constante : demande True/False → retourne ConstF.
+2 — Comparaison : demande identifiant gauche, opérateur (= ou <), identifiant droit → retourne ComparF(left, Eq()|Lt(), right).
+3 — Négation : construit récursivement la sous-formule et retourne NotF(sub).
+4 — BoolOp : construit récursivement gauche et droite, choisit ∧ ou ∨ → BoolOpF(left, Conj()|Disj(), right).
+5 — Quantificateur : choisit ∀ ou ∃, lit la variable liée, construit récursivement le corps → QuantifF(All()|Ex(), var, body).
+Validation minimale : les choix de menu sont vérifiés ; les noms d'identifiants/variables sont lus comme chaînes brutes.
+Résultat : la fonction affiche la formule construite (print("Formule saisie :", f)) et retourne l'objet Formula correspondant (p.ex. NotF(BoolOpF(...))).
+Utilisation rapide :
+from fonctions import input_formula_interactive
+f = input_formula_interactive()
+Remarque : la construction est récursive, donc vous pouvez imbriquer autant de sous-formules que nécessaire ; la validation côté identifiants est basique (chaînes). Voulez-vous que j'ajoute : validation des noms, saisie en une ligne (parser), ou tests unitaires rapides ?
 
 \end{document}
