@@ -744,9 +744,44 @@ def supDeVariables(formules: list, affichage: bool) -> list:
 
     return return_formules
         
+def enchainementSupDeVar(conjunctions: list):
+    print("Voulez-vous procéder à la suppression d'une variable ?")
+    reponse = input("1 : oui / 2 : non : ")
+    while reponse not in ["1", "2"]:
+        print("Choix invalide. Veuillez entrer 1 ou 2 :")
+        reponse = input("")
 
+    formule_after_sup = conjunctions
+    while (reponse == "1"):
+        print("\nSuppression d'une variable x dans chaque conjonction :")
+        print("Voulez-vous avec détail le déroulé de cette suppression ?")
+        choice = input("1 : oui / 2 : non : ")
+        while choice not in ["1", "2"]:
+            print("Choix invalide. Veuillez entrer 1 ou 2 :")
+            choice = input("")
 
+        if choice == "1":
+            conjunctions = supDeVariables(conjunctions,True)
+        else:
+            conjunctions = supDeVariables(conjunctions,False)
+        
+        print("Formule après suppression d'une variable et sans les quatificateurs inutiles:")
+        formule_after_sup = elimQuantifInutile(conjunctions)
+        affichageListeFormules(formule_after_sup, "    ")
 
+        print("Voulez-vous procéder à la suppression d'une autre variable ?")
+        reponse = input("1 : oui / 2 : non : ")
+        while reponse not in ["1", "2"]:
+            print("Choix invalide. Veuillez entrer 1 ou 2 :")
+            reponse = input("")
+    
+    return formule_after_sup
+
+def isFormuleValide(formules: list):
+    for i, f in enumerate(formules, 1):
+        if isinstance(f,ConstF) and f.val == True:
+            return True
+    return False
 
 def decision(g: Formula) -> bool:
     """Procédure de décision d'une formule"""
@@ -785,39 +820,19 @@ def decision(g: Formula) -> bool:
     affichageListeFormules(conjunctions)
 
     # Étape 5 : Supprimer la variable x dans chaque conjonction
-    print("Voulez-vous procéder à la suppression d'une variable ?")
-    reponse = input("1 : oui / 2 : non : ")
-    while reponse not in ["1", "2"]:
-        print("Choix invalide. Veuillez entrer 1 ou 2 :")
-        reponse = input("")
-
-    while reponse:
-        print("\nSuppression d'une variable x dans chaque conjonction :")
-        print("Voulez-vous avec détail le déroulé de cette suppression ?")
-        choice = input("1 : oui / 2 : non : ")
-        while choice not in ["1", "2"]:
-            print("Choix invalide. Veuillez entrer 1 ou 2 :")
-            choice = input("")
-
-        if choice == "1":
-            conjunctions = supDeVariables(conjunctions,True)
-        else:
-            conjunctions = supDeVariables(conjunctions,False)
-        
-        print("Formule après suppression d'une variable et sans les quatificateurs inutiles:")
-        formule_after_sup = elimQuantifInutile(conjunctions)
-        affichageListeFormules(formule_after_sup, "    ")
-
-        print("Voulez-vous procéder à la suppression d'une autre variable ?")
-        reponse = input("1 : oui / 2 : non : ")
-        while reponse not in ["1", "2"]:
-            print("Choix invalide. Veuillez entrer 1 ou 2 :")
-            reponse = input("")
-    return True
-
+    formule_after_sup = enchainementSupDeVar(conjunctions)
+    
+    print(f"La formule de départ {g} A été simplifiée après la procédure de décision en la liste de sous-formule :")
+    affichageListeFormules(formule_after_sup, "     ")
     # Étape 5 : Vérification de la validité
-    isFormuleValide(formule_after_sup)
-    if isinstance(f, ConstF):
-        return f.val
+    if isFormuleValide(formule_after_sup):
+        print(f"Cette liste de sous-formule contient une ou plusieur formule vrai donc notre formule générale est vrai, ")
+        print("car c'est une disjonction de ces sous-formules.")
     else:
-        raise ValueError("La formule finale n'est pas une constante.")
+        print(f"Cette liste de sous-formule contient aucune formule vrai ou n'a pas encore subit assez de suppression")
+        print("de variable pour qu'on puisse l'évaluer donc notre formule générale est fausse, car c'est une disjonction de ces sous-formules.")
+
+    print("Voulez vous essayer de supprimer d'autre variables :")
+    
+    return True
+    
