@@ -95,8 +95,20 @@ def test_dual():
     print("Formule originale :", test)
     print("Dual :", dual(test))
         
+    # Exemple de formule avec quantificateurs pour dual2
+    f = allq("x",
+            allq("y",
+                allq("z",
+                    exq("u",
+                        impl(
+                            conj(ltf("x", "y"), ltf("x", "z")),
+                            conj(ltf("y", "u"), ltf("z", "u"))
+                        )
+                    )
+                )
+            )
+        )
     print("Dual2 sur la formule du sujet :", dual2(f))
-    print("\n=== Fonction nnf et dnf ===")
 
 def test_nnf():
     # Tests de nnf
@@ -110,7 +122,6 @@ def test_nnf():
     print("test nnf :",n2,"->",nnf(n2))
     print("test nnf :",n3,"->",nnf(n3))
     print("test nnf :",n4,"->",nnf(n4))
-    print("nnf sur la formule du sujet sans quatificateur:", nnf(f))
         
 def test_dnf():
     # Tests de dnf
@@ -124,19 +135,65 @@ def test_dnf():
     print("test dnf :",d2,"->",dnf(d2))     
     print("test dnf :",d3,"->",dnf(d3))
     print("test dnf :",d4,"->",dnf(d4))
-    print("dnf sur la formule du sujet sans quatificateur:", dnf(f))
 
 def test_extraireQuantificateurs():
+    print("=== Test de la fonction extraireQuantificateurs ===")
+    # Exemple de formule avec quantificateurs : ∀x ∀y (x = y)
+    f = allq("x", exq("y", eqf("x", "y")))
+    print("Formule originale :", f)
+    body, quantifiers = extraireQuantificateurs(f)
+    print("Corps extrait :", body)
+    print("Quantificateurs extraits :",reconstruireAvecQuantificateurs("", quantifiers))
+
+    # Autre exemple avec négation : ¬∀x (x = y)
+    g = NotF(allq("x", eqf("x", "y")))
+    print("\nFormule avec négation :", g)
+    body_g, quantifiers_g = extraireQuantificateurs(g)
+    print("Corps extrait :", body_g)
+    print("Quantificateurs extraits :",reconstruireAvecQuantificateurs("", quantifiers_g))
 
 def test_reconstruireAvecQuantificateurs():
+    print("=== Test de la fonction reconstruireAvecQuantificateurs ===")
+    # Utilisons les résultats de extraireQuantificateurs
+    f = allq("x", exq("y", eqf("x", "y")))
+    body, quantifiers = extraireQuantificateurs(f)
+    reconstructed = reconstruireAvecQuantificateurs(body, quantifiers)
+    print("Formule originale :", f)
+    print("Formule reconstruite :", reconstructed)
+    print("Sont-elles égales ?", f == reconstructed)
 
 def test_reconstruireAvecTermes():
+    print("=== Test de la fonction reconstruireAvecTermes ===")
+    # Exemple de termes : [quantifiers, x< u terms, u< x terms, x= u terms, other terms]
+    quantifiers = [QuantifF(All(), "x", None), QuantifF(Ex(), "y", None)]
+    terms = [
+        quantifiers,
+        [ltf("x", "a")],  # x < u
+        [ltf("b", "x")],  # u < x
+        [eqf("x", "c")],  # x = u
+        [ltf("a", "b")]   # other
+    ]
+    reconstructed = reconstruireAvecTermes(terms)
+    print("Termes :")
+    affichageFormuleAvecTermes(terms)
+    print("Formule reconstruite :", reconstructed)
 
 def test_allVarInFormula():
-    
-def test_extracts():
+    print("=== Test de la fonction allVarInFormula ===")
+    # Exemple de formule : ∀x ∃y (x = y ∨ x < z)
+    f = allq("x", exq("y", disj(eqf("x", "y"), ltf("x", "z"))))
+    print("Formule :", f)
+    vars_in_formula = allVarInFormula(f)
+    print("Toutes les variables dans la formule :", vars_in_formula)
 
-    
+def test_extracts():
+    print("=== Test des fonctions extract ===")
+    # Exemple de formule : ∃x ( (x < a) ∧ (b < x) ∧ (x = c) ∧ (d < e) )
+    f = exq("x", conj(conj(conj(ltf("x", "a"), ltf("b", "x")), eqf("x", "c")), ltf("d", "e")))
+    print("Formule :", f)
+    affichageListeTermes(extractxltu(f, "x"),"Termes x < u :")
+    affichageListeTermes(extractultx(f, "x"),"Termes u < x :")
+    affichageListeTermes(extracteqx(f, "x"),"Termes x = w :")
 #------FIN TESTS DES FONCTIONS DE BASES------#
 
 #------TESTS DES FONCTIONS DE VERIFICATION DES HYPOTHESES------#
@@ -151,6 +208,44 @@ def test_isClose_toClose():
     print("Formule fermée obtenue avec toClose :", f_closed)
     print("Variables libres de la formule fermée :", freeVar(f_closed))
     print("isClose(f_closed) =", isClose(f_closed))
+
+def test_freeVar():
+    print("=== Test de la fonction freeVar ===")
+    # Exemple de formule avec variables libres : ∀x (x = y)
+    f = allq("x", eqf("x", "y"))
+    print("Formule :", f)
+    free_vars = freeVar(f)
+    print("Variables libres :", free_vars)
+
+    # Formule close : ∀x ∀y (x = y)
+    g = allq("x", allq("y", eqf("x", "y")))
+    print("\nFormule close :", g)
+    free_vars_g = freeVar(g)
+    print("Variables libres :", free_vars_g)
+
+def test_isJustSymboleRelationnel():
+    print("=== Test de la fonction isJustSymboleRelationnel ===")
+    # Exemple de formule avec seulement symboles relationnels : (x = y) ∧ (y < z)
+    f1 = conj(eqf("x", "y"), ltf("y", "z"))
+    print("Formule f1 :", f1)
+    print("isJustSymboleRelationnel(f1) =", isJustSymboleRelationnel(f1))
+
+    # Exemple avec constante : (x = y) ∧ True
+    f2 = conj(eqf("x", "y"), ConstF(True))
+    print("\nFormule f2 :", f2)
+    print("isJustSymboleRelationnel(f2) =", isJustSymboleRelationnel(f2))
+
+def test_isElimPossible():
+    print("=== Test de la fonction isElimPossible ===")
+    # Exemple de formule éligible : ∀x ∃y (x = y)
+    f1 = allq("x", exq("y", eqf("x", "y")))
+    print("Formule f1 :", f1)
+    print("isElimPossible(f1) =", isElimPossible(f1))
+
+    # Exemple non éligible (non close) : ∀x (x = y)
+    f2 = allq("x", eqf("x", "y"))
+    print("\nFormule f2 :", f2)
+    print("isElimPossible(f2) =", isElimPossible(f2))
 
 def test_allToExist():
     print("=== Test de la fonction allToExist ===")
@@ -171,7 +266,9 @@ def test_isPrenexe():
     f2 = exq("y", allq("x", eqf("x", "y")))
     print("Formule f2 :", f2)
     print("isPrenexe(f2) =", isPrenexe(f2))
+#------FIN TESTS DES FONCTIONS DE VERIFICATION DES HYPOTHESES------#
 
+#------TESTS DES FONCTIONS DE PRETRAITEMENT------#
 def test_elimNegation():
     print("=== Test de la fonction elimNegation ===")
     # Exemple de formule avec négation devant un quantificateur : ¬(∀x (x = y))
@@ -244,7 +341,9 @@ def test_tirerQuantif():
     print("Liste retournée pour f2 :")
     for i, r in enumerate(res2, 1):
         print(f"  [{i}]", r)
-    
+#------FIN TESTS DES FONCTIONS DE PRETRAITEMENT------#
+
+#------TESTS DES FONCTIONS DE SUPPRESIION DE VARIABLES------#
 def test_elimQuantifInutile():
     print("=== Test de la fonction elimQuantifInutile ===")
     # Exemple de formule avec quantificateurs inutiles : ∃x ∃y ∃z (x = y)
@@ -288,13 +387,18 @@ def test_regrouperTermes():
         print(f"    Quantificateurs :")
         print("      - ", reconstruireAvecQuantificateurs("", formule[0]))
 
-        affichageListeTermes(formule[1], prefix="x < u :")
-
-        affichageListeTermes(formule[2], prefix="u < x :")
-
-        affichageListeTermes(formule[3], prefix="w = x :")
-        print(f"    Autres termes :", formule[4])
+        affichageFormuleAvecTermes(formule)
         print()
+
+def test_simplifierInegalites():
+    print("=== Test de la fonction simplifierInegalites ===")
+    # Exemple de termes
+    less_than_terms = [ltf("x", "a"), ltf("x", "b")]
+    greater_than_terms = [ltf("c", "x"), ltf("d", "x")]
+    affichageListeTermes(less_than_terms,"Termes x < v :")
+    affichageListeTermes(greater_than_terms,"Termes u < x :")
+    simplified = simplifierInegalites(less_than_terms, greater_than_terms)
+    affichageListeTermes(simplified,"Termes simplifiés (u < v) :")
 
 def test_xeqw():
     print("=== Test de la fonction xeqw ===")
@@ -310,36 +414,103 @@ def test_xeqw():
     print("Résultat de xeqw avec x comme variable de référence sur les formules de test_regrouperTermes() :")
     for i, formule in enumerate(xeqw_result, 1):
         print(f"    Quantificateurs :")
-        print("      - ", reconstruireAvecQuantificateurs("", formule[0]))
         
-        affichageListeTermes(formule[1], prefix="x < u :")
-
-        affichageListeTermes(formule[2], prefix="u < x :")
-
-        affichageListeTermes(formule[3], prefix="w = x :")
-        print(f"    Autres termes :", formule[4])
+        print("      - ", reconstruireAvecQuantificateurs("", formule[0]))
+        affichageFormuleAvecTermes(formule)
         print()
+#------FIN TESTS DES FONCTIONS DE SUPPRESIION DE VARIABLES------#
 
-def test_
+#------TESTS DES FONCTIONS GENERALE DE DECISION------#
+def test_isFormuleValide():
+    print("=== Test de la fonction isFormuleValide ===")
+    # Liste de formules contenant True
+    formules1 = [ConstF(False), ConstF(True), eqf("x", "y")]
+    print("Liste de formules 1 :")
+    affichageListeFormules(formules1,"      ")
+    print("isFormuleValide(formules1) =", isFormuleValide(formules1))
 
+    # Liste sans True
+    formules2 = [ConstF(False), eqf("x", "y")]
+    print("Liste de formules 2 :")
+    affichageListeFormules(formules2,"      ")
 
+    print("isFormuleValide(formules2) =", isFormuleValide(formules2))
 
+def test_supDeVariables():
+    print("=== Test de la fonction supDeVariables ===")
+    # Exemple de liste de formules (conjonctions)
+    # Supposons une liste simple pour test
+    formules = [exq("x", conj(eqf("x", "a"), ltf("b", "x")))]
+    print("Liste de formules avant suppression :")
+    affichageListeFormules(formules,"       ")
+    result = supDeVariables(formules, False)
+    print("Liste de formules après suppression de la variable x :")
+    affichageListeFormules(result,"     ")
+    # Aussi teste enchainementSupDeVar logiquement, mais comme c'est interactif, on ne peut pas le tester automatiquement
+#------FIN TESTS DES FONCTIONS GENERALE DE DECISION------#
 
+#------TESTS GLOBAUX------#
+def test_bases():
+    print("Début des tests de base\n")
+    test_syntax()
+    test_nnf()
+    test_dual()
+    test_dnf()
+    print("\n")
+    test_extraireQuantificateurs()
+    print("\n")
+    test_reconstruireAvecQuantificateurs()
+    print("\n")
+    test_reconstruireAvecTermes()
+    print("\n")
+    test_allVarInFormula()
+    print("\n")
+    test_extracts()
+    print("\n=== Fin des tests de base ===")
 
+def test_hypothese():
+    print("Début des tests des fonctions vérifiant les hypothèses pour la procédure de décision\n")
+    test_isClose_toClose()
+    print("\n")
+    test_freeVar()
+    print("\n")
+    test_isJustSymboleRelationnel()
+    print("\n")
+    test_isElimPossible()
+    print("\n")
+    test_allToExist()
+    print("\n")
+    test_isPrenexe()
 
+def test_pretraitement():
+    print("Début des tests des fonctions de prétraitement des formules\n")
+    test_tirerNegation()
+    print("\n")
+    test_elimNegation()
+    print("\n")
+    test_toDisjonctive()
+    print("\n")
+    test_isDisjonctive()
+    print("\n")
+    test_tirerQuantif()
 
+def test_supression():
+    print("Début des tests des fonctions de suppression de variable\n")
+    test_elimQuantifInutile()
+    print("\n")
+    test_searchXltX()
+    print("\n")
+    test_regrouperTermes()
+    print("\n")
+    test_simplifierInegalites()
+    print("\n")
+    test_xeqw()
 
-
-
-
-
-
-
-
-
-
-
-
+def test_decision():
+    print("Début des tests des fonctions générales de décision\n")
+    test_isFormuleValide()
+    print("\n")
+    test_supDeVariables()
 
 def test_global():
     print("=== Tests des fonctions sur les formules ===")
@@ -349,44 +520,27 @@ def test_global():
     print(" 2 - Test des fonctions vérifiant les hypothèses pour la procédure de décision")
     print(" 3 - Test des fonctions de prétraitement des formules")
     print(" 4 - Test des fonctions de suppression de variable")
+    print(" 5 - Test des fonctions générales de décision")
+    print(" 6 - Tout les tests")
 
+    choice = input("Entrez 1, 2, 3, 4, 5 ou 6: ")
+    while choice not in ["1", "2", "3", "4", "5", "6"]:
+        print("Choix invalide. Veuillez entrer 1, 2, 3, 4, 5 ou 6.")
+        choice = input("Entrez 1, 2, 3, 4, 5 ou 6 : ")
 
-    choice = input("Entrez 1, 2, 3 ou 4: ")
-    while choice not in ["1", "2", "3", "4"]:
-        print("Choix invalide. Veuillez entrer 1, 2, 3 ou 4.")
-        choice = input("Entrez 1, 2, 3 ou 4 : ")
-
+    if choice == "6":
+        test_bases()
+        test_hypothese()
+        test_pretraitement()
+        test_supression()
+        test_decision()
     if choice == "1":
-        print("Début des tests de base\n")
-        test_syntax()
-        test_nnf()
-        test_dual()
-        test_dnf()
-        print("\n=== Fin des tests de base ===")
+        test_bases()
     elif choice == "2":
-        print("Début des tests des fonctions vérifiant les hypothèses pour la procédure de décision\n")
-        test_isClose_toClose()
-        print("\n")
-        test_allToExist()
-        print("\n")
-        test_isPrenexe()
+        test_hypothese()
     elif choice == "3":
-        print("Début des tests des fonctions de prétraitement des formules\n")
-        test_tirerNegation()
-        print("\n")
-        test_elimNegation()
-        print("\n")
-        test_toDisjonctive()
-        print("\n")
-        test_isDisjonctive()
-        print("\n")
-        test_tirerQuantif()
+        test_pretraitement()
     elif choice == "4":
-        print("Début des tests des fonctions de suppression de variable\n")
-        test_elimQuantifInutile()
-        print("\n")
-        test_searchXltX()
-        print("\n")
-        test_regrouperTermes()
-        print("\n")
-        test_xeqw()
+        test_supression()
+    elif choice == "5":
+        test_decision()

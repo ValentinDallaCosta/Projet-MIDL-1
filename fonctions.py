@@ -109,13 +109,13 @@ def extraireQuantificateurs(f: Formula) -> Tuple[Formula, list]:
             continue
         else:
             if isinstance(body, NotF):
-                if isinstance(body.sub, All):
+                if isinstance(body.sub, QuantifF) and isinstance(body.sub.q,All):
                     quantifiers.append(NotF(QuantifF(All(), body.sub.var, None)))  # On stocke le quantificateur 
                 else:
                     quantifiers.append(NotF(QuantifF(Ex(), body.sub.var, None)))  # On stocke le quantificateur
                 body = body.sub.body
             else:
-                if isinstance(body, All):
+                if isinstance(body, QuantifF) and isinstance(body.q,All):
                     quantifiers.append(QuantifF(All(), body.var, None))  # On stocke le quantificateur 
                 else:
                     quantifiers.append(QuantifF(Ex(), body.var, None))  # On stocke le quantificateur
@@ -674,9 +674,6 @@ def searchXltX(formula):
     else:
         return False
 
-
-
-
 #---Programme principal : Décision d'une fonction---#
 
 def supDeVariables(formules: list, affichage: bool) -> list:
@@ -818,19 +815,26 @@ def decision(g: Formula) -> bool:
     affichageListeFormules(conjunctions)
 
     # Étape 5 : Supprimer la variable x dans chaque conjonction
-    formule_after_sup = enchainementSupDeVar(conjunctions)
-    
-    print(f"La formule de départ {g} A été simplifiée après la procédure de décision en la liste de sous-formule :")
-    affichageListeFormules(formule_after_sup, "     ")
-    # Étape 5 : Vérification de la validité
-    if isFormuleValide(formule_after_sup):
-        print(f"Cette liste de sous-formule contient une ou plusieur formule vrai donc notre formule générale est vrai, ")
-        print("car c'est une disjonction de ces sous-formules.")
-    else:
-        print(f"Cette liste de sous-formule contient aucune formule vrai ou n'a pas encore subit assez de suppression")
-        print("de variable pour qu'on puisse l'évaluer donc notre formule générale est fausse, car c'est une disjonction de ces sous-formules.")
+    formule_after_sup = conjunctions
+    continuer = "1"
+    while continuer == "1":
+        formule_after_sup = enchainementSupDeVar(formule_after_sup)
+        
+        print(f"La formule de départ {g} A été simplifiée après la procédure de décision en la liste de sous-formule :")
+        affichageListeFormules(formule_after_sup, "     ")
+        # Étape 5 : Vérification de la validité
+        if isFormuleValide(formule_after_sup):
+            print(f"Cette liste de sous-formule contient une ou plusieur formule vrai donc notre formule générale est vrai, ")
+            print("car c'est une disjonction de ces sous-formules.")
+            continuer = "2"
+        else:
+            print(f"Cette liste de sous-formule contient aucune formule vrai ou n'a pas encore subit assez de suppression")
+            print("de variable pour qu'on puisse l'évaluer. Donc notre formule générale est fausse, car c'est une disjonction de ces sous-formules.")
+            print("Voulez vous essayer de supprimer d'autre variables pour rendre la formule plus simple ? :")
+            continuer = input("1 : oui / 2 : non : ")
+            while continuer not in ["1", "2"]:
+                print("Choix invalide. Veuillez entrer 1 ou 2 :")
+                continuer = input("")   
 
-    print("Voulez vous essayer de supprimer d'autre variables :")
-    
     return True
     
