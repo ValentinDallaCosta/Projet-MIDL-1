@@ -187,7 +187,6 @@ def affichageFormuleAvecTermes(formule: list) -> None:
     if formule == [formule[0],[],[],[],[]]:
         print("             La formule est vide, donc True")
 
-
 def input_formula_interactive() -> Formula:
     """Construit une formule via des invites terminales et la retourne.
     Types disponibles : constante, comparaison, négation, opérateur booléen, quantificateur.
@@ -295,19 +294,6 @@ def extracteqx(f: Formula, x: str) -> list:
         terms = []
 
     return terms
-
-def searchXltX(formula):
-    """Renvoie True si la formule contient une comparaison de la forme (x < x)."""
-    if isinstance(formula, BoolOpF):
-        return searchXltX(formula.left) or searchXltX(formula.right)
-    elif isinstance(formula, NotF):
-        return searchXltX(formula.sub)
-    elif isinstance(formula, QuantifF):
-        return searchXltX(formula.body)
-    elif isinstance(formula, ComparF) and formula.op == Lt() and formula.left == formula.right:
-        return True
-    else:
-        return False
 
 #---Fonctions permettant de vérifier les hypothèse pour la procédure de décision---#
 
@@ -675,6 +661,18 @@ def simplifierInegalites(less_than_terms: list, greater_than_terms: list) -> lis
             new_terms.append(ComparF(gt_term.left, Lt(), lt_term.right))
     return new_terms
 
+def searchXltX(formula):
+    """Renvoie True si la formule contient une comparaison de la forme (x < x)."""
+    if isinstance(formula, BoolOpF):
+        return searchXltX(formula.left) or searchXltX(formula.right)
+    elif isinstance(formula, NotF):
+        return searchXltX(formula.sub)
+    elif isinstance(formula, QuantifF):
+        return searchXltX(formula.body)
+    elif isinstance(formula, ComparF) and formula.op == Lt() and formula.left == formula.right:
+        return True
+    else:
+        return False
 
 
 
@@ -778,7 +776,7 @@ def enchainementSupDeVar(conjunctions: list):
     return formule_after_sup
 
 def isFormuleValide(formules: list):
-    for i, f in enumerate(formules, 1):
+    for f in formules:
         if isinstance(f,ConstF) and f.val == True:
             return True
     return False

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from fonctions import *
 
-def test_base():
+#------TESTS DES FONCTIONS DE BASES------#
+def test_syntax():
     print("\n=== Création d'une structure ===")
     #Les constantes
     f1 = ConstF(True)
@@ -31,8 +32,6 @@ def test_base():
     f8 = NotF(f4)        # ¬(y < z)
     print("Négation :", f8)
 
-
-
     # Quantificateur : Exemple : ∀x.(x < y)
     f9 = allq("x", ltf("x", "y"))
     print("Quantificateur universel :", f9)
@@ -40,7 +39,6 @@ def test_base():
     # Exemple : ∃y.(x = y)
     f10 = exq("y", eqf("x", "y"))
     print("Quantificateur existentiel :", f10)
-
 
     # Sans abrévation ∀x ∀y ∀z ∃u ((x < y ∧ x < z) ⇒ (y < u ∧ z < u))
     f = QuantifF(All(), "x" , 
@@ -64,11 +62,9 @@ def test_base():
                 )
             )
         )
-
     print("\nFormule (exemple du sujet) :", f)
 
     # Autre exemple de formule : ∀x ∃y (x = y ∨ ¬(x < y))
-
     g = allq("x",
             exq("y",
                 disj(
@@ -92,9 +88,8 @@ def test_base():
     print("Sous-formule finale (partie droite de l'implication) :")
     print(f.body.body.body.body.right)
 
-
+def test_dual():
     print("\n=== Fonction récursive : dual ===")
-
     # Test de dual et dualOp
     test = conj(ConstF(True), ConstF(False))
     print("Formule originale :", test)
@@ -103,6 +98,7 @@ def test_base():
     print("Dual2 sur la formule du sujet :", dual2(f))
     print("\n=== Fonction nnf et dnf ===")
 
+def test_nnf():
     # Tests de nnf
     n1 = NotF(ConstF(True))
     n2 = NotF(conj(ComparF("x", Eq(), "y"), ComparF("y", Eq(), "z")))
@@ -116,6 +112,7 @@ def test_base():
     print("test nnf :",n4,"->",nnf(n4))
     print("nnf sur la formule du sujet sans quatificateur:", nnf(f))
         
+def test_dnf():
     # Tests de dnf
     d1 = NotF(ConstF(True))
     d2 = NotF(disj(ComparF("x", Eq(), "y"), ComparF("y", Eq(), "z")))
@@ -129,8 +126,20 @@ def test_base():
     print("test dnf :",d4,"->",dnf(d4))
     print("dnf sur la formule du sujet sans quatificateur:", dnf(f))
 
-    print("\n=== Fin des tests de base ===")
+def test_extraireQuantificateurs():
 
+def test_reconstruireAvecQuantificateurs():
+
+def test_reconstruireAvecTermes():
+
+def test_allVarInFormula():
+    
+def test_extracts():
+
+    
+#------FIN TESTS DES FONCTIONS DE BASES------#
+
+#------TESTS DES FONCTIONS DE VERIFICATION DES HYPOTHESES------#
 def test_isClose_toClose():
     print("=== Test des fonctions isClose et toClose ===")
     # Exemple de formule avec variable libre : ∀x (x = y)
@@ -311,6 +320,27 @@ def test_xeqw():
         print(f"    Autres termes :", formule[4])
         print()
 
+def test_
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def test_global():
     print("=== Tests des fonctions sur les formules ===")
 
@@ -328,7 +358,11 @@ def test_global():
 
     if choice == "1":
         print("Début des tests de base\n")
-        test_base()
+        test_syntax()
+        test_nnf()
+        test_dual()
+        test_dnf()
+        print("\n=== Fin des tests de base ===")
     elif choice == "2":
         print("Début des tests des fonctions vérifiant les hypothèses pour la procédure de décision\n")
         test_isClose_toClose()
