@@ -60,13 +60,13 @@
 
 \section{Manuel d'utilisateur}
 
-Pour utiliser le programme, assurez-vous de posséder les FICHIERKFGKFGKF dans le même répertoire.
+Pour utiliser le programme, assurez-vous d'ouvrir le fichier \textbf{DECISION} dans le terminal de commande. Celui ci doit-être composé des fichiers : \texttt{syntax.py, fonctions.py, fonctions\_test.py et main.py}
 
 \begin{enumerate}
     \item Lancez une console Python dans ce répertoire.
     \item Lancer le programme principal avec la commande \textbf{\textit{python3 main.py}} (sous python 3).
-    \item A partir de là vous pouvez désormais choisir parmi les trois choix possibles, le 1, les tests, on vous demandera ensuite quel test exécuter. Ou alors vous pouvez directement choisir de lancer le programme principal de la procédure de décision avec sois en choix n°2 une formule déjà donné, sois en choix n°3 une formule que vous entrerez vous même.
-    \item Dans le cas de ce troisième choix vous entrerez votre formule en suivant les instructions de construction de formule, ensuite cela reviendra au deuxième choix avec la résolution si possible de la formule à l'aide de la procédure de décision.
+    \item A partir de là vous pouvez désormais choisir parmi les trois choix possibles, le 1, les tests, on vous demandera ensuite quels tests exécuter. \item Vous pouvez aussi directement choisir de lancer le programme principal de la procédure de décision avec en choix n°2 une formule déjà donné dont le déroulé de la décision vous sera détaillé.
+    \item Dans le cas du troisième choix vous entrerez votre formule en suivant les instructions de construction de formule, celles-ci sont détaillées en annexe. Ensuite cela reviendra au deuxième choix avec la résolution si possible de la formule à l'aide de la procédure de décision.
 \end{enumerate}
 
 \section{Description de l'implantation}
@@ -83,7 +83,7 @@ Tout d'abord comme suggéré dans le sujet nous aurons une liste avec les variab
 
 Cet ordre est simplement pour une meilleure compréhension car en python nous pouvons accéder facilement au dernier élément d'une liste, sinon nous aurons inversé l'ordre pour l'utiliser comme une pile en ajoutant les variables à partir du début de la formule. De même, la liste ne sera pas exactement celle-ci mais plutôt [sub=QuantifF(q=Ex(), var='x', body=None), QuantifF(q=Ex(), var='y', body=None)], de ce fait nous pourrons rajouter les négations dans cette liste.\\
 
-Ensuite lorsque nous arriverons à la dernière étape de notre procédé de prétraitement nous devons tirer la quantification existentielle à l'intérieur de nos disjonctions, car à partir de cette étape nous avons une formule qui est sous forme normale disjonctive. De ce fait nous aurons l'apparition d'une deuxième liste qui sera composée pour chacun de ses éléments, des quantificateurs et de leur potentielle négation ainsi que d'une conjonction de relation. Notre liste sera alors en quelque sorte une disjonction de sous formule (ici des conjoction) extraites de notre formule.
+Ensuite lorsque nous arriverons à la dernière étape de notre procédé de prétraitement nous devons tirer la quantification existentielle à l'intérieur de nos disjonctions, car à partir de cette étape nous avons une formule qui est sous forme normale disjonctive. De ce fait nous aurons l'apparition d'une deuxième liste qui sera composée pour chacun de ses éléments, des quantificateurs et de leur potentielle négation ainsi que d'une conjonction de relation. Notre liste sera alors en quelque sorte une disjonction de sous formule (ici des conjonction) extraites de notre formule.
 \[
 Liste \leftrightarrow\; \bigvee_j (\exists x\, \psi_j)
 \]
