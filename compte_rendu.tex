@@ -174,7 +174,7 @@ Voici la liste des fonctions actuellement implantées dans les fichiers (\texttt
     \item \textbf{isClose(f)} : Récupère la liste des variables libres avec \textbf{freeVar(f)}, s'il n'y en a pas alors la formule est close sinon elle ne l'est pas.
     \item \textbf{toClose(f)} : Transforme une formule en formule close en ajoutant un quantificateur $\forall$ pour chaque variable libre.
     \item \textbf{isJustSymboleRelationnel(f)} : Parcourt récursivement l'arbre syntaxique de la formule et vérifie si elle est composée seulement de symboles relationnels en parcourant l'arbre syntaxique.
-    \item \textbf{isElimPossible(f)} : Vérifie si la formule est close et qu'avec des symboles relationnels.
+    \item \textbf{isElimPossible(f)} : Vérifie si la formule est close et qu'avec des symboles relationnels à l'aide des fonctions précédentes.
     \item \textbf{isPrenexe(f)} : On vérifie que la formule sois sous la forme prénexe à l'aide d'une fonction qui renvoie si oui ou non une formule contient des quantificateurs. Tant qu ela formule commence par un quantificateur on appelle récursivement sur son contenue et sinon le reste de la formule ne doit pas contenir de quantificateur.
     \item \textbf{allToExist(f)} : Cette fonction se base seulement sur cette formule ($\forall x. \varphi \leftrightarrow \neg (\exists x. \neg \varphi)$) et l'applique à la formule donnée.\\
 \end{itemize}
@@ -199,12 +199,18 @@ Voici la liste des fonctions actuellement implantées dans les fichiers (\texttt
 \end{itemize}
 
 \subsubsection{Fonctions de décision d'une formule}
+
 \begin{itemize}
     \item \textbf{supDeVariables(f,bool)} : Comme supposé dans le nom cette fonction nous permet de supprimer une variable dans une conjonction. Pour se faire nous allons vérifier si notre formule n'est pas déjà une constante ou si celle ci contient la relation x < x à l'aide de la fonction \texttt{searchXltX}, ces cas étant les plus simple à traiter. Si ce n'est pas le cas nous regroupons les termes comme expliquer plus haut dans la partie \texttt{Implantation de la procédure de décision}. Ce suit alors un enchaînement de test nous permettant de supprimer la variable "x". Cette fonction comporte une grosse partie d'affichage pour décrire les étapes de la suppression de variable. De ce fait nous avons rajouter la possibilité de supprimer cet affichage grâce au booléen passée en paramètre en bloquant la sortie standard.  
     \item \textbf{enchainementSupDeVar(list)} : Cette fonction est composée essentiellement d'input qui demande à l'utilisateur si celui-ci veut supprimer une variable ou bien afficher le détail de la suppression de variable. Cela prend beaucoup de place et c'est pour cela que nous avons créés une fonction à part entière pour cela, car pour chaque input nous devons faire une boucle "while" pour s'assurer que l'utilisateur rentre une réponse correcte. Tout cela dans une boucle "while" générale pour si l'utilisateur continue à exécuter des suppressions de variable.
-    \item \textbf{isFormuleValide(list)} : 
-    \item \textbf{decision(formule)} :
+    \item \textbf{isFormuleValide(list)} : Cette formule assez simple est composé simplement d'une boucle qui effectue sur chaque sous-formule un test, si celle-ci est $\top$ alors on renvoie True car si une sous formule d'une disjonction est vrai alors la formule entière l'est, sinon on passe à la sous formule suivante, si il n'y a aucun $\top$ alors on renvoie False.
+    \item \textbf{decision(formule)} : Voici notre formule générale de décision de formule celle-ci est assez simple et permet simplement de soulager le main.
+    Elle est composé de plusieur étape correspondant à celle suivit tout le long du projet. Tout d'abord avec les fonctions \texttt{toClose, isClose, isElimPossible, allToExist et isJustSymboleRelationnel} nous vérifions les hypothèse et nous préparons la formule à être traité. Ensuite nous effectuons le prétraitement de notre formule, nous exécutons à la suite sur notre formule les fonctions \texttt{tirerNegation et elimNegation} permettant de supprimer les négations sur le corps de la formule puis \texttt{toDisjonctive et tirerQuantif} pour séparer notre formule en sous formule sous forme normales conjonctives. Pour finir nous retirons les quantificateurs inutiles et appelons la fonction \texttt{enchainementSupDeVar} afin de supprimer les variables pour simplifier la formule. A la fin de tout cela nous appelons \texttt{isFormuleValide} pour vérifier la validité de notre formule.
 \end{itemize}
+
+\subsubsection{Main et fonction de tests}
+
+
 
 \newpage
 \section{Annexe}
