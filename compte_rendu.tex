@@ -135,11 +135,23 @@ Dans cette partie nous allons enfin nous focaliser sur la résolution de notre f
 
 Tout d'abord commençons par les deux premières étapes qui seront les plus simples, la première est de retirer tout les quantificateurs inutiles de notre formule, c'est à dire ceux qui ne concerne aucune variable de notre sous-formule. Par exemple ($\exists y.$) dans $\exists x. \exists y. x = x$. Pour cela nous créerons la fonction \texttt{elimQuantifInutile(f)} qui nous renverras notre liste avec chaque sous-formules démunie de ses quantificateurs inutiles.
 
-Notre deuxième étapes sera de rechercher exactement cette relation (x < x) dans chacune des sous-formules, si elle est présente alors celle-ci sera modifié pour devenir : $\bot$ On nommera cette nouvelle fonction \texttt{supXltX(list)}.\\
+Notre deuxième étapes sera de rechercher exactement cette relation (x < x) dans chacune des sous-formules, si elle est présente alors celle-ci sera modifié pour devenir : $\bot$.\\
 
 Par la suite nous devrons utiliser une implémentation et méthodologie différente, celle-ci est comme les autres décrites dans partie \textbf{Représentation des données}.
 
-Nous sommes donc ici dans le cas où il n'y a pas la relation x < x dans notre formule, nous allons donc regrouper en 4 parties les 
+Nous sommes donc ici dans le cas où il n'y a pas la relation x < x dans notre formule, nous allons donc regrouper en 4 parties les conjonctions de notre formule, comme expliqué dans la section Représentation des données nous aurons la fonction \texttt{regrouperTermes(f,x)} qui va créer une liste de 4 listes composés des relations de la forme x < u, u < x, x = u et les termes où x n’apparaît pas, cela en se basant sur la variable x passé en paramètre. A partir d'ici nous pouvons distinguer trois cas et suivre le schéma proposé dans le sujet.
+
+S'il y a une relation "=" alors nous remplaçons x par sa nouvelle valeur, sinon si nous rencontrons les termes x < u et v < x alors on supprime x en les transformant en v < u. Et pour finir si nous avons que des relations x < ou < x alors nous gardons que les termes ne contenant pas x car ces relations n'ont aucun impact sur la formule générale.
+
+\subsubsection{\underline{Décision d'une formule}}
+
+Nous voila donc maintenant dans la dernière partie qui clôture notre programme de décision, celui-ci sera court et consistera simplement à effectuer l'ensemble de nos traitements sur la formule donné.
+
+Il contient la fonction principale de notre programme \texttt{decision(f)} qui sera expliciter dans la partie \textbf{Analyse des fonctions}. Le peu de fonction que contient cette partie consiste à effectuer une suppression de variable à l'aide des fonction mise en place dans la partie précédente ainsi qu'un enchaînement de celle ci.\\
+
+Commençons le fonctionnement de celle-ci, nous allons donc pour chaque conjonctions de notre formule de départ effectuer les différent cas mis en place, c'est à dire si x < x est présent, ou regrouper les termes pour ensuite faire une distinctions de cas. Suite à cela nous nous retrouvons forcément avec une formule réduite car nous avons supprimé une variable et donc un quantificateur de notre formule, mais pas sa négation s'il en avait une attention. Si cette suppression de variable nous suffit à avoir une constante $\top$ ou $\bot$ alors nous aurons fini le programme. Mais comme souvent cela ne suffit pas il est libre à l'utilisateur de faire une deuxième suppression de variable voire plus. C'est là qu'intervient \texttt{enchainementSupDeVar(conjonctions)} qui sera la fonction nous permettant cela. Celle-ci est comme un interface qui demande à l'utilisateur si celui ci veut supprimer une autre variable, c'est aussi ici que nous avons rajouté la fonctionnalité permettant à l'utilisateur de choisir s'il veut le détail de cette suppression car celui-ci est long et n'est pas forcément nécessaire à chaque fois.\\
+
+Pour finir la fonction \texttt{decision(f)} consiste en un ensemble d'appel à ces fonctions que nous avons créés tout le long du projet et qui fini par l'appel à la dernière fonction du projet, \texttt{isFormuleValide(list)}, qui avec la liste de conjonctions représentant notre formule de départ désormais devenu des constantes à la suite des suppressions de variable définie si notre formule est valide ou non.
 
 \subsection{Analyse des fonctions}
 Voici la liste des fonctions actuellement implantées dans les fichiers (\texttt{fonctions\dots.py}) ainsi que leur fonctionnement :
@@ -183,9 +195,15 @@ Voici la liste des fonctions actuellement implantées dans les fichiers (\texttt
     \item \textbf{elimQuantifInutile(conjonctions)} : Dans cette fonction nous allons créer une autre fonction qui nous renverra la liste des variables présentes dans notre formule (\texttt{allVarInFormula(f), explication de son fonctionnement dans la partie des fonctions de bases}), ce qui nous permettra ensuite de supprimer les quantificateurs inutiles. 
 
     Ici toute la difficulté est dans les négations, si un quantificateur est inutile alors on le supprime, rien de compliqué. Mais si celui-ci est précédé d'une négation alors on l'applique sur le quantificateur suivant. Dès lors nous avons 3 cas : Si celui-ci n'a pas déjà de négation alors on la décale devant celui-ci, sinon on supprime la négation (car deux à la suite) et dans le dernier cas, si c'était le dernier quantificateur alors on décale cette négation au corps de la formule. Pour tout ces tests on s'est aidé du booléen \texttt{isNot} qui correspond au manque ou non d'une négation. En aucun cas lors de cette fonction nous supprimons une négation car cela modifierait le sens logique de la formule.
-    \item \textbf{supXltX(list)} : Cette fonction prend en paramètre la même liste de conjonction que celle dans les autres fonctions de cette partie de suppression de variable. Ici nous allons donc parcourir la liste passé en paramètre et rechercher l'inégalité (x < x).
-    
-    Pour cela nous créons la fonction récursive \texttt{searchXltX(f)} qui est locale et définit dans notre fonction car elle ne servira nulle part ailleurs. Nous testons donc pour chaque formule de la liste si elle contient cette relation, si c'est le cas on remplace cette formule par $\bot$ dans la liste et sinon celle-ci reste inchangé.
+    \item \textbf{searchXltX(list)} : Cette fonction récursive parcourt notre formule et recherche si la relation x < x est présente, pour cela nous faisons un appel récursif sur le corps d'une négation d'un quantificateur ou des sous formules d'une opération, jusqu'à atteindre une relation où nous vérifions si celle ci est de la forme x < x.
+\end{itemize}
+
+\subsubsection{Fonctions de décision d'une formule}
+\begin{itemize}
+    \item \textbf{supDeVariables(f,bool)} : Comme supposé dans le nom cette fonction nous permet de supprimer une variable dans une conjonction. Pour se faire nous allons vérifier si notre formule n'est pas déjà une constante ou si celle ci contient la relation x < x à l'aide de la fonction \texttt{searchXltX}, ces cas étant les plus simple à traiter. Si ce n'est pas le cas nous regroupons les termes comme expliquer plus haut dans la partie \texttt{Implantation de la procédure de décision}. Ce suit alors un enchaînement de test nous permettant de supprimer la variable "x". Cette fonction comporte une grosse partie d'affichage pour décrire les étapes de la suppression de variable. De ce fait nous avons rajouter la possibilité de supprimer cet affichage grâce au booléen passée en paramètre en bloquant la sortie standard.  
+    \item \textbf{enchainementSupDeVar(list)} : Cette fonction est composée essentiellement d'input qui demande à l'utilisateur si celui-ci veut supprimer une variable ou bien afficher le détail de la suppression de variable. Cela prend beaucoup de place et c'est pour cela que nous avons créés une fonction à part entière pour cela, car pour chaque input nous devons faire une boucle "while" pour s'assurer que l'utilisateur rentre une réponse correcte. Tout cela dans une boucle "while" générale pour si l'utilisateur continue à exécuter des suppressions de variable.
+    \item \textbf{isFormuleValide(list)} : 
+    \item \textbf{decision(formule)} :
 \end{itemize}
 
 \newpage

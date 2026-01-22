@@ -674,7 +674,7 @@ def searchXltX(formula):
     else:
         return False
 
-#---Programme principal : Décision d'une fonction---#
+#---Programme principal : Décision d'une formule---#
 
 def supDeVariables(formules: list, affichage: bool) -> list:
     """Applique la fin de la procédure de décision pour supprimer la variable x sur une liste de fonction"""
