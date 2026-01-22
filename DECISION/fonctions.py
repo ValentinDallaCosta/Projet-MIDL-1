@@ -295,8 +295,6 @@ def extracteqx(f: Formula, x: str) -> list:
 
     return terms
 
-#---Fonctions permettant de vérifier les hypothèse pour la procédure de décision---#
-
 def freeVar(f: Formula, bound_vars=None) -> list:
     """Retourne la liste (éventuellement vide) des variables libres de la formule f."""
     if bound_vars is None:
@@ -321,8 +319,10 @@ def freeVar(f: Formula, bound_vars=None) -> list:
     elif isinstance(f, ConstF):
         return []
     else:
-        raise ValueError("isClose: type non connu")
-    
+        raise ValueError("isClose: type non connu")   
+
+#---Fonctions permettant de vérifier les hypothèse pour la procédure de décision---#
+
 def isClose(f: Formula) -> bool:
     """Vérifie si une formule est close (sans variable libre)."""
     free_vars = freeVar(f)
@@ -645,7 +645,7 @@ def xeqw(f: Formula, x: str) -> list:
 
     for term in f[3]:
         # On supprime le terme à l'avance toute les égalités avec la variable x car elle deviendrons w = w.
-        f[3].remove(term) if term.left == x or term.right == x else term.left
+        f[3].remove(term) if term.left == w or term.right == w else term.left
     list_terme.append(f[3])
 
     # Pas besoin de changer le reste de la formule car x n'y apparait pas
