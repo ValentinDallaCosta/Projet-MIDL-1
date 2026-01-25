@@ -69,6 +69,10 @@ Pour utiliser le programme, assurez-vous d'ouvrir le fichier \textbf{DECISION} d
     \item Dans le cas du troisième choix vous entrerez votre formule en suivant les instructions de construction de formule, celles-ci sont détaillées en annexe. Ensuite cela reviendra au deuxième choix avec la résolution si possible de la formule à l'aide de la procédure de décision.
 \end{enumerate}
 
+\newpage
+\tableofcontents
+\newpage
+
 \section{Description de l'implantation}
 
 \subsection{Représentation des données}
@@ -87,8 +91,20 @@ Ensuite lorsque nous arriverons à la dernière étape de notre procédé de pr�
 \[
 Liste \leftrightarrow\; \bigvee_j (\exists x\, \psi_j)
 \]
-Nous pouvons apparenter la virgule entre les termes de la liste comme des disjonctions.
+Nous pouvons apparenter la virgule entre les termes de la liste comme des disjonctions.\\
 
+Nous voici maintenant dans ce qui fera office de dernière représentation de notre formule amenant à sa décision complète. Ici nous avons alors pour chaque formule une liste de sous formule toute étant un ensemble de conjonctions. Nous allons se concentrer sur une seule de ces sous formules pour la résoudre.
+
+Nous allons alors pour chaque sous formule regrouper ses termes. Pour cela nous créons une liste qui sera composé de plusieurs autres listes :
+\begin{itemize}
+    \item La première liste sera la liste des quantificateurs de notre sous-formule.
+    \item La deuxième quant à elle sera composé de tout les termes de la formes x < .. avec x une variable choisi et identique pour toute les listes.
+    \item La troisième dans le même style sera composée des termes de la formes .. < x.
+    \item La quatrième sera les égalités du type x = .. .
+    \item La cinquième elle sera tout les termes de notre sous-formule ne contenant pas la variable x.
+\end{itemize}
+
+Une fois chacune des sous-formule sous cette forme nous pouvons continuer notre traitement pour supprimer la variable x souhaité en étudiant les différentes listes crées.
 
 \subsection{Implantation de la procédure de décision}
 
@@ -151,12 +167,12 @@ Il contient la fonction principale de notre programme \texttt{decision(f)} qui s
 
 Commençons le fonctionnement de celle-ci, nous allons donc pour chaque conjonctions de notre formule de départ effectuer les différent cas mis en place, c'est à dire si x < x est présent, ou regrouper les termes pour ensuite faire une distinctions de cas. Suite à cela nous nous retrouvons forcément avec une formule réduite car nous avons supprimé une variable et donc un quantificateur de notre formule, mais pas sa négation s'il en avait une attention. Si cette suppression de variable nous suffit à avoir une constante $\top$ ou $\bot$ alors nous aurons fini le programme. Mais comme souvent cela ne suffit pas il est libre à l'utilisateur de faire une deuxième suppression de variable voire plus. C'est là qu'intervient \texttt{enchainementSupDeVar(conjonctions)} qui sera la fonction nous permettant cela. Celle-ci est comme un interface qui demande à l'utilisateur si celui ci veut supprimer une autre variable, c'est aussi ici que nous avons rajouté la fonctionnalité permettant à l'utilisateur de choisir s'il veut le détail de cette suppression car celui-ci est long et n'est pas forcément nécessaire à chaque fois.\\
 
-Pour finir la fonction \texttt{decision(f)} consiste en un ensemble d'appel à ces fonctions que nous avons créés tout le long du projet et qui fini par l'appel à la dernière fonction du projet, \texttt{isFormuleValide(list)}, qui avec la liste de conjonctions représentant notre formule de départ désormais devenu des constantes à la suite des suppressions de variable définie si notre formule est valide ou non.
+Pour finir la fonction \texttt{decision(f)} consiste en un ensemble d'appel à ces fonctions que nous avons créés tout le long du projet et qui fini par l'appel à la dernière fonction du projet, \texttt{isFormuleValide(list)}. Qui avec la liste de conjonctions représentant notre formule de départ désormais devenu des constantes, à la suite des suppressions de variable, définie si notre formule est valide ou non.
 
 \subsection{Analyse des fonctions}
 Voici la liste des fonctions actuellement implantées dans le fichier (\texttt{fonctions.py}) ainsi que leur fonctionnement :
 
-\subsubsection{Fonctions de base}
+\subsubsection{\underline{Fonctions de base}}
 \begin{itemize}
     \item \textbf{dual(f)} : Parcourt récursivement l'arbre syntaxique pour inverser les opérateurs $\wedge$ et $\vee$.
     \item \textbf{nnf(f)} : Transforme une formule en Forme Normale Négative en tirant les négations. Pour ce faire nous effectuons des tests sur chaque instance possible, si ce n'est pas une négation alors on applique la fonction sur le corps de la formule et si c'est une négation quatre possibilité apparaisses :
@@ -179,7 +195,7 @@ Voici la liste des fonctions actuellement implantées dans le fichier (\texttt{f
     La description de l'utilisation de cette fonction se trouve en annexe. 
 \end{itemize}
 
-\subsubsection{Fonctions d'aide pour la procédure de décision}
+\subsubsection{\underline{Fonctions d'aide pour la procédure de décision}}
 \textbf{Fonctions de vérification des hypothèses :}
 \begin{itemize}
     \item \textbf{isClose(f)} : Récupère la liste des variables libres avec \textbf{freeVar(f)}, s'il n'y en a pas alors la formule est close sinon elle ne l'est pas.
@@ -224,7 +240,7 @@ Voici la liste des fonctions actuellement implantées dans le fichier (\texttt{f
     \item \textbf{simplifierInegalites(list,list)} : Cette fonction traite le cas où il y a les relations x < u et v < x dans notre formule. Elle prend en paramètre la liste des relations x < et < x afin de les simplifier. Pour cela nous allons simplement parcourir les deux listes avec deux boucles imbriquées, pour chacune des relations du type (x < u) et (v1 < x, v2 < x, ...) nous allons ajouter à notre nouvelle liste les relations (v1 < u, v2 < u, ...).Nous aurons alors supprimé toute les occurrences de x dans notre formule.
 \end{itemize}
 
-\subsubsection{Fonctions de décision d'une formule}
+\subsubsection{\underline{Fonctions de décision d'une formule}}
 
 \begin{itemize}
     \item \textbf{supDeVariables(f,bool)} : Comme supposé dans le nom cette fonction nous permet de supprimer une variable dans une conjonction. Pour se faire nous allons vérifier si notre formule n'est pas déjà une constante ou si celle ci contient la relation x < x à l'aide de la fonction \texttt{searchXltX}, ces cas étant les plus simple à traiter. 
@@ -247,7 +263,7 @@ Voici la liste des fonctions actuellement implantées dans le fichier (\texttt{f
     Pour finir nous retirons les quantificateurs inutiles et appelons la fonction \texttt{enchainementSupDeVar} afin de supprimer les variables pour simplifier la formule. A la fin de tout cela nous appelons \texttt{isFormuleValide} pour vérifier la validité de notre formule.
 \end{itemize}
 
-\subsubsection{Fonction de tests et main}
+\subsubsection{\underline{Fonction de tests et main}}
 
 \begin{itemize}
     \item \textbf{Fonctions de tests} : Dans le dossier \texttt{DECISION} nous pouvons trouver un fichier \texttt{fonctions\_tests.py}, celui-ci comporte l'ensemble des fonctions de tests du programme. En effet chacune des fonctions utilisées dans le programme est testé par un ou plusieurs test de sorte à couvrir les cas qui pourrait potentiellement poser problème. 
@@ -262,6 +278,8 @@ Voici la liste des fonctions actuellement implantées dans le fichier (\texttt{f
 \end{itemize}
 
 \newpage
+
+
 \section{Annexe}
 
 Elle sera composé d'une liste et de deux dictionnaires dont on va vous expliquer l'utilité :
