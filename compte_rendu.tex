@@ -9,6 +9,17 @@
 \usepackage{xcolor}
 \usepackage{geometry}
 \geometry{margin=2.5cm}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+\fancyhf{} % nettoie en-têtes et pieds
+
+\fancyfoot[L]{Projet MIDL 1}
+\fancyfoot[C]{\thepage}
+\fancyfoot[R]{Année 2025--2026}
+
+\renewcommand{\footrulewidth}{0.4pt} % ligne au-dessus du pied de page (optionnel)
+
 
 % --- Ajout pour les liens cliquables ---
 \usepackage[hidelinks, colorlinks=true, linkcolor=myblue, urlcolor=myblue]{hyperref}
@@ -340,6 +351,6 @@ Voici donc la liste des choix possible ainsi que le déroulement une fois ceux l
 
 Tout les choix de menu sont vérifiés : les noms des variables comme les chiffres entrés lors du choix. Pour finir la fonction affiche la formule construite et la retourne.
 
-Remarque : La construction est récursive, donc vous pouvez imbriquer autant de sous-formules que nécessaire.
+Remarque : la construction est récursive, donc vous pouvez imbriquer autant de sous-formules que nécessaire.
 
 \end{document}
