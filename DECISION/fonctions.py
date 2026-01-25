@@ -93,7 +93,33 @@ def dnf(f: Formula) -> Formula:
                 return conj(left_dnf, right_dnf)
     else:
         raise ValueError("dnf: type non connu")   
-    
+
+def freeVar(f: Formula, bound_vars=None) -> list:
+    """Retourne la liste (éventuellement vide) des variables libres de la formule f."""
+    if bound_vars is None:
+        bound_vars = set()
+
+    if isinstance(f, QuantifF):
+        return freeVar(f.body, bound_vars | {f.var})
+    elif isinstance(f, NotF):
+        return freeVar(f.sub, bound_vars)
+    elif isinstance(f, BoolOpF):
+        left_free = set(freeVar(f.left, bound_vars))
+        right_free = set(freeVar(f.right, bound_vars))
+        return sorted(list(left_free | right_free))
+    elif isinstance(f, ComparF):
+        free = set()
+        # on suppose que left/right sont des identifiants représentant des variables
+        if isinstance(f.left, str) and (f.left not in bound_vars):
+            free.add(f.left)
+        if isinstance(f.right, str) and (f.right not in bound_vars):
+            free.add(f.right)
+        return sorted(list(free))
+    elif isinstance(f, ConstF):
+        return []
+    else:
+        raise ValueError("isClose: type non connu")   
+
 def extraireQuantificateurs(f: Formula) -> Tuple[Formula, list]:
     """Extrait les quantificateurs de la formule et retourne le corps sans quantificateurs
     ainsi que la liste des quantificateurs extraits."""
@@ -294,32 +320,6 @@ def extracteqx(f: Formula, x: str) -> list:
         terms = []
 
     return terms
-
-def freeVar(f: Formula, bound_vars=None) -> list:
-    """Retourne la liste (éventuellement vide) des variables libres de la formule f."""
-    if bound_vars is None:
-        bound_vars = set()
-
-    if isinstance(f, QuantifF):
-        return freeVar(f.body, bound_vars | {f.var})
-    elif isinstance(f, NotF):
-        return freeVar(f.sub, bound_vars)
-    elif isinstance(f, BoolOpF):
-        left_free = set(freeVar(f.left, bound_vars))
-        right_free = set(freeVar(f.right, bound_vars))
-        return sorted(list(left_free | right_free))
-    elif isinstance(f, ComparF):
-        free = set()
-        # on suppose que left/right sont des identifiants représentant des variables
-        if isinstance(f.left, str) and (f.left not in bound_vars):
-            free.add(f.left)
-        if isinstance(f.right, str) and (f.right not in bound_vars):
-            free.add(f.right)
-        return sorted(list(free))
-    elif isinstance(f, ConstF):
-        return []
-    else:
-        raise ValueError("isClose: type non connu")   
 
 #---Fonctions permettant de vérifier les hypothèse pour la procédure de décision---#
 

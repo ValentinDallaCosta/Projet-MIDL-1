@@ -154,18 +154,29 @@ Commençons le fonctionnement de celle-ci, nous allons donc pour chaque conjonct
 Pour finir la fonction \texttt{decision(f)} consiste en un ensemble d'appel à ces fonctions que nous avons créés tout le long du projet et qui fini par l'appel à la dernière fonction du projet, \texttt{isFormuleValide(list)}, qui avec la liste de conjonctions représentant notre formule de départ désormais devenu des constantes à la suite des suppressions de variable définie si notre formule est valide ou non.
 
 \subsection{Analyse des fonctions}
-Voici la liste des fonctions actuellement implantées dans les fichiers (\texttt{fonctions\dots.py}) ainsi que leur fonctionnement :
+Voici la liste des fonctions actuellement implantées dans le fichier (\texttt{fonctions.py}) ainsi que leur fonctionnement :
 
 \subsubsection{Fonctions de base}
 \begin{itemize}
     \item \textbf{dual(f)} : Parcourt récursivement l'arbre syntaxique pour inverser les opérateurs $\wedge$ et $\vee$.
-    \item \textbf{nnf(f)} : Transforme une formule en Forme Normale Négative en descendant les négations jusqu'aux comparaisons.
-    \item \textbf{dnf(f)} : Convertit la formule en Forme Normale Disjonctive en utilisant la distributivité.
+    \item \textbf{nnf(f)} : Transforme une formule en Forme Normale Négative en tirant les négations. Pour ce faire nous effectuons des tests sur chaque instance possible, si ce n'est pas une négation alors on applique la fonction sur le corps de la formule et si c'est une négation quatre possibilité apparaisses :
+
+    Si c'est une constante on renvoie son inverse, si c'est une comparaison alors l'égalité devient deux inégalités et ainsi de suite pour si c'est des inégalités. Si c'est une autre négation alors la double négation s'annule puis si c'est une opération booléenne alors le OU devient ET en appliquant des négation sur les deux termes de l'opération.
+    \item \textbf{dnf(f)} : Convertit la formule en Forme Normale Disjonctive en utilisant la distributivité. Fonctionne de la même manière que \texttt{nnf()}, cette fois ci cela fonctionne récursivement en distribuant soit la conjonction soit la disjonction de sorte que l'on ait une disjonction de conjonction.
     \item \textbf{freeVar(f)} : Parcourt récursivement l'arbre syntaxique en ajoutant les variables liées dans un ensemble quelle renvoie ensuite.
     \item \textbf{extraireQuantificateurs(f)} : Dans cette fonction itérative nous parcourons la formule dans une boucle "while" comportant 3 tests (il y a un quantificateur, un quantificateur précédé d'une négation ou deux négation à la suite). S'il y a deux négations alors on les supprime et on continue l'algorithme, sinon on ajoute dans une liste créé auparavant le quantificateur précédé ou non d'une négation.
     \item \textbf{reconstruireAvecQuantificateurs(body, quantif)} : Cette fonction plus simple recompose seulement notre formule à l'aide du corps et des quantificateurs, une boucle "for" parcoure la liste de quantificateur à l'envers et ajoute l'élément au début du corps déjà donné.
-    \item \textbf{allVarInFormula(f)} : Cette fonction nous permet de récupérer les variables de la formule, celle ci nous sera utile dans plusieurs autres fonctions comme\\ \texttt{elimQauntifInutile(list)}. C'est une fonction récursive basée sur plusieurs tests qui soit applique la fonction sur une sous formule soit, si il y a une relation (= ou <), ajoute dans la liste renvoyée les deux variables.
-    \item \textbf{affichageListeFormules(formules)} : Cette fonction nous servira dans le programme principal à partir de la dernière partie de notre procédure de décision, c'est à dire lorsque nous manipulons une liste de sous-formules. Elle est facilement composée d'une boucle qui parcourt la liste et en affiche son contenue avec une indexation.
+    \item \textbf{reconstruireAvecTermes(list)} : Dans le même style que \texttt{reconstruireAvecQuantificateurs(body, quantif)} cette fonction permet de reconstruire une formule sous forme normale conjonctive. La liste passée en paramètre étant composé de listes composé des termes de la formule nous avons simplement à parcourir ces listes et à placer une conjonction entre chaque termes, nous renvoyons ensuite le résultat de \texttt{reconstruireAvecQuantificateurs} appliqué au quantificateur étant la première liste de la liste passé en paramètre et à la formule que nous venons de reformer.
+    \item \textbf{allVarInFormula(f)} : Cette fonction récursive nous permet de récupérer les variables de la formule. Pour cela nous effectuons comme dans la plupart des autres fonctions des tests sur le type de notre formule, si celui-ci est autre qu'une comparaison alors on applique la fonction récursivement sur le corps de notre formule, sinon on ajoute dans une liste, si elles y sont pas déjà les variables de notre comparaison.
+    \item \textbf{affichage()} : Ces deux fonctions nous servirons dans le programme principal à partir de la dernière partie de notre procédure de décision, c'est à dire lorsque nous manipulons une liste de sous-formules ou une liste de liste de termes. Elles permettes toute deux un affichage simplifié d'une formule à partir d'une simple liste passé en paramètre. De plus nous avons rajouté la possibilité de rajouter un préfixe passé en paramètre rendant l'affichage plus modulable.
+    \item \textbf{extract()} :  Ces trois fonctions similaire extracts marchent de la même manière, elles permettent de renvoyer une liste composé seulement des termes d'une seule sorte, égalité, inégalité, ... Pour cela nous "descendons" dans l'arbre syntaxique de la formule jusqu'à tomber sur une relation, si celle-ci est celle recherchée alors on l'ajoute à la liste sinon nous ne faisons rien.
+    \item \textbf{input\_formula\_interactive()} : Pour la création de cette fonction je me suis aidé de chatGPT pour pouvoir avoir la représentation la plus simple et compréhensible possible car il est difficile de rentrer une formule dans un terminal python. De ce fait nous avons créé un système basé sur un ensemble de choix qui se succède. 
+
+    Deux fonctions locales choose et build permettent respectivement de choisir le type de formule souhaité et de la construire. Ensuite cela est seulement un ensemble de test sur le type choisi avec la construction de la formule associé ("1" pour une constante, "2" pour une comparaison qui lance à nouveau "choose" pour = ou <, ... jusqu'à "5").
+
+    Cela reste quand même une longue tache de rentrer une formule mais cela est déjà bien plus compréhensible que d'autre solution.
+    
+    La description de l'utilisation de cette fonction se trouve en annexe. 
 \end{itemize}
 
 \subsubsection{Fonctions d'aide pour la procédure de décision}
@@ -236,9 +247,19 @@ Voici la liste des fonctions actuellement implantées dans les fichiers (\texttt
     Pour finir nous retirons les quantificateurs inutiles et appelons la fonction \texttt{enchainementSupDeVar} afin de supprimer les variables pour simplifier la formule. A la fin de tout cela nous appelons \texttt{isFormuleValide} pour vérifier la validité de notre formule.
 \end{itemize}
 
-\subsubsection{Main et fonction de tests}
+\subsubsection{Fonction de tests et main}
 
+\begin{itemize}
+    \item \textbf{Fonctions de tests} : Dans le dossier \texttt{DECISION} nous pouvons trouver un fichier \texttt{fonctions\_tests.py}, celui-ci comporte l'ensemble des fonctions de tests du programme. En effet chacune des fonctions utilisées dans le programme est testé par un ou plusieurs test de sorte à couvrir les cas qui pourrait potentiellement poser problème. 
+    
+    Elles sont toute écrite approximativement de la même manière avec des formules déjà écrite passé en paramètre de la fonction puis un affichage permettant de vérifier si le résultat est bien celui attendu.
 
+    De plus nous retrouvons à la fin de ce fichier un suite de cinq fonction qui regroupe selon leur type les fonctions de tests, hypothèse, suppression de variable, .... De ce fait nous avons à la fin de notre fichier la fonction \texttt{test\_global()} qui effectue en fonction de la demande se l'utilisateur les fonction de tests associées.
+
+    \item \textbf{Main} : Toujours dans ce même dossier nous pouvons retrouver le fichier \texttt{main.py} qui contient le programme à exécuter de notre projet.
+
+    Celui-ci est en grande partie composé d'input de l'utilisateur vis à vis du programme que celui-ci veut lancer. Il a alors trois choix, les tests, le programme sur une formule déjà donnée et le programme sur une fonction rentré par l'utilisateur. A la fin de cela le programme main.py exécute alors le programme associé, c'est a dire \texttt{test\_global(), decision(formule)} ou bien \texttt{input\_formula\_interactive()} puis \texttt{decision(formule)}.
+\end{itemize}
 
 \newpage
 \section{Annexe}
