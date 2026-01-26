@@ -65,13 +65,13 @@
 \newpage
 
 \section{Introduction}
-\textit{Ce projet s'inscrit dans le cadre de l'UE PROJET MIDL 1 et porte sur l'implantation d'une procédure de décision automatisée pour la théorie des ordres denses (DO),l se base sur les connaissances et savoirs que nous avons acquis lors de l'UE Philosophie des sciences” en L1.}\\
+\textit{Ce projet s'inscrit dans le cadre de l'UE PROJET MIDL 1 et porte sur l'implantation d'une procédure de décision automatisée pour la théorie des ordres denses (DO), elle se base sur les connaissances et savoirs que nous avons acquis lors de l'UE Philosophie des sciences en L1.}\\
 
-\textit{Le but de ce projet est d’implanter cette procédure dans un programme capable de déterminer la validité d'une formule logique en utilisant la méthode de l'élimination des quantificateurs. Le problème consiste à transformer une formule close (sans variables libres) contenant des quantificateurs ($\forall$, $\exists$) en une constante logique ($\top$ ou $\bot$).}\\
+\textit{Le but de ce projet est d'implémenter cette procédure dans un programme capable de déterminer la validité d'une formule logique en utilisant la méthode de l'élimination des quantificateurs. Le problème consiste à transformer une formule close (sans variables libres) contenant des quantificateurs ($\forall$, $\exists$) en une constante logique ($\top$ ou $\bot$).}\\
 
-\textit{Pour ce faire, nous traitons successivement chaque variable quantifiée en analysant les relations d'ordre ($<$) et d'égalité ($=$) présentes dans le corps de la formule à l'aide de nombreuse fonction et surtout d'une représentation de donnée bien choisi et adéquate que nous explicitons dans la partie \texttt{\hyperlink{representation}Représentation des données}.}\\
+\textit{Pour ce faire, nous traitons successivement chaque variable quantifiée en analysant les relations d'ordre ($<$) et d'égalité ($=$) présentes dans le corps de la formule à l'aide de nombreuses fonctions et surtout d'une représentation de données bien choisie et adéquate que nous explicitons dans la partie \texttt{\hyperlink{representation}Représentation des données}.}\\
 
-\textit{Cette procédure s'appuie sur un ensemble d'étape décrite en annexe du sujet et que nous suivrons tout le long de ce projet. Au cours de ce travail, nous avons dû relever plusieurs défis techniques : }
+\textit{Cette procédure s'appuie sur un ensemble d'étapes décrites en annexe du sujet et que nous suivrons tout le long de ce projet. Au cours de ce travail, nous avons dû relever plusieurs défis techniques : }
 \begin{itemize}
     \item \textit{La représentation des données : Choisir des structures informatiques appropriées en Python (fondées sur le fichier syntax.py fourni) pour manipuler efficacement les arbres syntaxiques des formules.}
     \item \textit{Les hypothèses : Mettre en place les fondations de notre programme en créant les premières fonctions permettant à une formule d'être correctement écrite pour être traitée.}
@@ -79,20 +79,20 @@
     \item \textit{L'extension arithmétique : Explorer la possibilité d'étendre cet algorithme aux nombres rationnels, permettant ainsi de traiter des expressions linéaires plus complexes (comme $3*x - z < y$).}\\
 \end{itemize}
 
-\textit{Ce rapport détaille donc notre démarche d'implantation, les choix de structures de données que nous avons privilégiés pour faciliter le traitement récursif, ainsi que les analyses de chacune des fonctions utilisées dans notre programme.}
+\textit{Ce rapport détaille donc notre démarche d'implémentation, les choix de structures de données que nous avons privilégiés pour faciliter le traitement récursif, ainsi que les analyses de chacune des fonctions utilisées dans notre programme.}\\
 
-\textit{Vous trouverez donc dans ce rapport détaillé l'ensemble des informations nécessaire à la bonne compréhension de notre programme et des choix que nous avons fait. Allant du manuel d'utilisateurs à l'analyse des fonctions.}
+\textit{Vous trouverez donc dans ce rapport détaillé l'ensemble des informations nécessaires à la bonne compréhension de notre programme et des choix que nous avons faits. Allant du manuel d'utilisateur à l'analyse des fonctions.}
 
 \section{Manuel d'utilisateur}
 
-Pour utiliser le programme, assurez-vous d'ouvrir le fichier \textbf{DECISION} dans le terminal de commande. Celui ci doit-être composé des fichiers : \texttt{syntax.py, fonctions.py, fonctions\_test.py et main.py}
+Pour utiliser le programme, assurez-vous d'ouvrir le fichier \textbf{DECISION} dans le terminal de commande. Celui-ci doit être composé des fichiers : \texttt{syntax.py, fonctions.py, fonctions\_test.py et main.py}
 
 \begin{enumerate}
     \item Lancez une console Python dans ce répertoire.
-    \item Lancer le programme principal avec la commande \textbf{\textit{python3 main.py}} (sous python 3).
-    \item A partir de là vous pouvez désormais choisir parmi les trois choix possibles, le 1, les tests, on vous demandera ensuite quels tests exécuter. 
-    \item Vous pouvez aussi directement choisir de lancer le programme principal de la procédure de décision avec en choix n°2 une formule déjà donné dont le déroulé de la décision vous sera détaillé.
-    \item Dans le cas du troisième choix vous entrerez votre formule en suivant les instructions de construction de formule, celles-ci sont détaillées en annexe. Ensuite cela reviendra au deuxième choix avec la résolution si possible de la formule à l'aide de la procédure de décision.
+    \item Lancez le programme principal avec la commande \textbf{\textit{python3 main.py}} (sous python 3).
+    \item À partir de là, vous pouvez désormais choisir parmi les trois choix possibles : le 1 : les tests, il vous sera demandé ensuite quels tests exécuter. 
+    \item Vous pouvez aussi directement choisir de lancer le programme principal de la procédure de décision avec en choix n°2 une formule déjà donnée dont le déroulé de la décision vous sera détaillé.
+    \item Dans le cas du troisième choix, vous entrerez votre formule en suivant les instructions de construction de la formule, celles-ci sont détaillées en annexe. Ensuite, cela reviendra au deuxième choix avec la résolution si possible de la formule à l'aide de la procédure de décision.
 \end{enumerate}
 
 \section{Description de l'implantation}
@@ -100,59 +100,59 @@ Pour utiliser le programme, assurez-vous d'ouvrir le fichier \textbf{DECISION} d
 \subsection{Représentation des données}
 \label{sec:representation}
 
-Durant toute la première partie de notre programme, c'est à dire des tests des fonctions de bases jusqu'à la fin des vérifications des hypothèses, nous utiliserons la représentation classique sous forme de formule de logique.\\
+Durant toute la première partie de notre programme, c'est-à-dire des tests des fonctions de base jusqu'à la fin des vérifications des hypothèses, nous utiliserons la représentation classique sous forme de formule de logique.\\
 
 Notre représentation des données changera donc après cette dernière étape, nous allons donc utiliser à partir de l'élimination des quantificateurs depuis l'intérieur jusqu'à la fin de notre procédure de décision une tout autre représentation.
 
-Nous avons eu une première idée basée sur deux dictionnaires que nous avons approfondie mais nous nous sommes rendu compte que celle ci était trop compliqué à mettre en place dans la suite du programme, on vous la laisse donc en annexe de ce rapport avant de vous expliciter notre choix final.\\
+Nous avons eu une première idée basée sur deux dictionnaires que nous avons approfondie mais nous nous sommes rendu compte que celle-ci était trop compliquée à mettre en place dans la suite du programme, on vous la laisse donc en annexe de ce rapport avant de vous expliciter notre choix final.\\
 
-Tout d'abord comme suggéré dans le sujet nous aurons une liste avec les variables de notre formule qui seront alors chacune associée à un quantificateur existentiel car les hypothèses pour la procédure de décision seront déjà satisfaites à cette étape. Par exemple pour la formule suivante $\exists x\,\exists y\,\varphi$ nous aurons la liste [x,y] dans cette ordre pour pouvoir éliminer les quantificateurs à partir du dernier élément de la liste jusqu'au premier. De ce fait nous pourrons passer en paramètre de certaine de nos fonctions seulement le corps de la fonction, ce qui simplifiera le code de celle-ci.
+Tout d'abord, comme suggéré dans le sujet, nous aurons une liste avec les variables de notre formule qui seront alors chacune associée à un quantificateur existentiel car les hypothèses pour la procédure de décision seront déjà satisfaites à cette étape. Par exemple pour la formule suivante $\exists x\,\exists y\,\varphi$ nous aurons la liste [x,y] dans cet ordre pour pouvoir éliminer les quantificateurs à partir du dernier élément de la liste jusqu'au premier. De ce fait nous pourrons passer en paramètre de certaines de nos fonctions seulement le corps de la fonction, ce qui simplifiera le code de celle-ci.
 
-Cet ordre est simplement pour une meilleure compréhension car en python nous pouvons accéder facilement au dernier élément d'une liste, sinon nous aurons inversé l'ordre pour l'utiliser comme une pile en ajoutant les variables à partir du début de la formule. De même, la liste ne sera pas exactement celle-ci mais plutôt [sub=QuantifF(q=Ex(), var='x', body=None), QuantifF(q=Ex(), var='y', body=None)], de ce fait nous pourrons rajouter les négations dans cette liste.\\
+Cet ordre est simplement pour une meilleure compréhension car en Python nous pouvons accéder facilement au dernier élément d'une liste, sinon nous aurions inversé l'ordre pour l'utiliser comme une pile en ajoutant les variables à partir du début de la formule. De même, la liste ne sera pas exactement celle-ci mais plutôt [sub=QuantifF(q=Ex(), var='x', body=None), QuantifF(q=Ex(), var='y', body=None)], de ce fait nous pourrons rajouter les négations dans cette liste.\\
 
-Ensuite lorsque nous arriverons à la dernière étape de notre procédé de prétraitement nous devons tirer la quantification existentielle à l'intérieur de nos disjonctions, car à partir de cette étape nous avons une formule qui est sous forme normale disjonctive. De ce fait nous aurons l'apparition d'une deuxième liste qui sera composée pour chacun de ses éléments, des quantificateurs et de leur potentielle négation ainsi que d'une conjonction de relation. Notre liste sera alors en quelque sorte une disjonction de sous formule (ici des conjonction) extraites de notre formule.
+Ensuite lorsque nous arriverons à la dernière étape de notre procédé de prétraitement nous devons tirer la quantification existentielle à l'intérieur de nos disjonctions, car à partir de cette étape nous avons une formule qui est sous forme normale disjonctive. De ce fait nous aurons l'apparition d'une deuxième liste qui sera composée pour chacun de ses éléments, des quantificateurs et de leur potentielle négation ainsi que d'une conjonction de relations. Notre liste sera alors en quelque sorte une disjonction de sous-formules (ici des conjonctions) extraites de notre formule.
 \[
 Liste \leftrightarrow\; \bigvee_j (\exists x\, \psi_j)
 \]
 Nous pouvons apparenter la virgule entre les termes de la liste comme des disjonctions.\\
 
-Nous voici maintenant dans ce qui fera office de dernière représentation de notre formule amenant à sa décision complète. Ici nous avons alors pour chaque formule une liste de sous formule toute étant un ensemble de conjonctions. Nous allons se concentrer sur une seule de ces sous formules pour la résoudre.
+Nous voici maintenant dans ce qui fera office de dernière représentation de notre formule amenant à sa décision complète. Ici nous avons alors pour chaque formule une liste de sous-formules toutes étant un ensemble de conjonctions. Nous allons se concentrer sur une seule de ces sous-formules pour la résoudre.
 
-Nous allons alors pour chaque sous formule regrouper ses termes. Pour cela nous créons une liste qui sera composé de plusieurs autres listes :
+Nous allons alors pour chaque sous-formule regrouper ses termes. Pour cela nous créons une liste qui sera composée de plusieurs autres listes :
 \begin{itemize}
     \item La première liste sera la liste des quantificateurs de notre sous-formule.
-    \item La deuxième quant à elle sera composé de tout les termes de la formes x < .. avec x une variable choisi et identique pour toute les listes.
-    \item La troisième dans le même style sera composée des termes de la formes .. < x.
+    \item La deuxième quant à elle sera composée de tout les termes de la forme x < .. avec x une variable choisie et identique pour toutes les listes.
+    \item La troisième dans le même style sera composée des termes de la forme .. < x.
     \item La quatrième sera les égalités du type x = .. .
     \item La cinquième elle sera tout les termes de notre sous-formule ne contenant pas la variable x.
 \end{itemize}
 
-Une fois chacune des sous-formule sous cette forme nous pouvons continuer notre traitement pour supprimer la variable x souhaité en étudiant les différentes listes crées.
+Une fois chacune des sous-formules sous cette forme nous pouvons continuer notre traitement pour supprimer la variable x souhaitée en étudiant les différentes listes créées.
 
 \subsection{Implantation de la procédure de décision}
 
 \subsubsection{\underline{Hypothèse}}
 
-Pour l'implantation de la procédure de décision on a suivi les instructions de la partie A.2 du sujet. Donc tout d'abord nous avons dû émettre des hypothèses sur notre formule que nous avons traduit par des fonctions crées dans notre code.
+Pour l'implantation de la procédure de décision nous avons suivi les instructions de la partie A.2 du sujet. Donc tout d'abord nous avons dû émettre des hypothèses sur notre formule que nous avons traduites par des fonctions créées dans notre code.
 
-Celle-ci ne peuvent être exécutés seulement si la formule est close, c'est à dire sans variables libres et qu'elle est composé seulement de symboles relationnels (< et =). 
-Nous avons traduit cela dans le code par les fonctions \texttt{freeVar(f)}, \texttt{isClose(f)}, \texttt{toClose(f)}, \texttt{isJustSymboleRelationnel(f)} et \texttt{isElimPossible(f)} qui les utilisent. Toutes celles-ci sont décrite dans la partie \textbf{\hyperlink{analyse_fonctions}{Analyse des fonctions}}. \\
+Celles-ci ne peuvent être exécutées seulement si la formule est close, c'est-à-dire sans variables libres et qu'elle est composée seulement de symboles relationnels (< et =). 
+Nous avons traduit cela dans le code par les fonctions \texttt{freeVar(f)}, \texttt{isClose(f)}, \texttt{toClose(f)}, \texttt{isJustSymboleRelationnel(f)} et \texttt{isElimPossible(f)} qui les utilisent. Toutes celles-ci sont décrites dans la partie \textbf{\hyperlink{analyse_fonctions}{Analyse des fonctions}}. \\
 
 
-Une fois toutes les exigences satisfaites nous pouvons commencer la démarche nous permettant de satisfaire toute les hypothèses nécessaire à la procédure de décision :
+Une fois toutes les exigences satisfaites nous pouvons commencer la démarche nous permettant de satisfaire toutes les hypothèses nécessaires à la procédure de décision :
 
 \begin{itemize}
-    \item Tout d'abord nous devons convertir la formule en forme prénexe, c'est à dire que tout ses quantificateurs sont situé à gauche de la formule, cela empêche d'avoir plusieurs variable de même nom mais de signification différentes. Pour cela nous avons créé la fonction \texttt{isPrenexe(f)} qui vérifie seulement si notre formule est sous forme prénexe, cela est supposé mais on l'appellera quand même pour suivre la démarche lors du programme principal.\\
+    \item Tout d'abord nous devons convertir la formule en forme prénexe, c'est-à-dire que tous ses quantificateurs sont situés à gauche de la formule, cela empêche d'avoir plusieurs variables de même nom mais de signification différentes. Pour cela nous avons créé la fonction \texttt{isPrenexe(f)} qui vérifie seulement si notre formule est sous forme prénexe, cela est supposé mais on l'appellera quand même pour suivre la démarche lors du programme principal.\\
     \item Ensuite nous devons convertir les quantificateurs universels en existentiels en suivant la formule suivante : $\forall x. \varphi \leftrightarrow \neg (\exists x. \neg \varphi)$.
-    La fonction \texttt{allToExist(f)} suit cette formule et renvoie donc notre formule modifié.\\
-    \item Puis pour finir nous pouvons éliminer les quantificateurs à partir de l’intérieur. A partir de cette étape et pour toute la suite de notre programme nous utiliserons le deuxième type de représentation des données, n'étant plus des formules mais des listes. Celle-ci est expliqué plus haut dans la partie \textbf{\nameref{sec:representation}}.
+    La fonction \texttt{allToExist(f)} suit cette formule et renvoie donc notre formule modifiée.\\
+    \item Puis pour finir nous pouvons éliminer les quantificateurs à partir de l'intérieur. À partir de cette étape et pour toute la suite de notre programme nous utiliserons le deuxième type de représentation des données, n'étant plus des formules mais des listes. Celle-ci est expliquée plus haut dans la partie \textbf{\nameref{sec:representation}}.
 
-    Donc nous allons créer pour nous aider les fonctions \texttt{extraireQuantificateurs(f)} et \texttt{reconstruireAvecQuantificateurs(f,quantif)} qui respectivement extrairont les quantificateurs de la formule et reconstruiront la formule à l'aide d'une telle liste. Leurs fonctionnement sont expliqués plus bas.
+    Donc nous allons créer pour nous aider les fonctions \texttt{extraireQuantificateurs(f)} et \texttt{reconstruireAvecQuantificateurs(f,quantif)} qui respectivement extrairont les quantificateurs de la formule et reconstruiront la formule à l'aide d'une telle liste. Leurs fonctionnements sont expliqués plus bas.
 \end{itemize}
 
 \subsubsection{\underline{Prétraitement}}
 
-Dans cette partie nous avons désormais une formule qui remplit toute les hypothèses et donc nous pouvons procéder à son prétraitement. Pour cela commençons par tirer les négations à l'intérieur de notre formule, le but de cette étape est de nous retrouver avec une formule sous forme normale négative. Pour cela nous avions déjà créé la fonction \texttt{nnf(f)} lors de la première partie du projet, nous allons donc la reprendre pour construire notre fonction \texttt{tirerNegation(f)}. Nous expliquons sont fonctionnement dans la partie \textbf{\hyperlink{analyse_fonctions}{Analyse des fonctions}}. \\
+Dans cette partie nous avons désormais une formule qui remplit toutes les hypothèses et donc nous pouvons procéder à son prétraitement. Pour cela commençons par tirer les négations à l'intérieur de notre formule, le but de cette étape est de nous retrouver avec une formule sous forme normale négative. Pour cela nous avions déjà créé la fonction \texttt{nnf(f)} lors de la première partie du projet, nous allons donc la reprendre pour construire notre fonction \texttt{tirerNegation(f)}. Nous expliquons son fonctionnement dans la partie \textbf{\hyperlink{analyse_fonctions}{Analyse des fonctions}}. \\
 
 Ensuite, une fois les négations tirées à l'intérieur de la formule, nous pouvons les supprimer le plus possible. Pour cela nous nous aidons des lois données dans le sujet qui sont : \[
 \begin{aligned}
@@ -160,38 +160,38 @@ Ensuite, une fois les négations tirées à l'intérieur de la formule, nous pou
 (b)\ &\neg (z = z') \leftrightarrow (z \prec z' \lor z' \prec z)
 \end{aligned}\] 
 
-à l'aide de celles-ci nous pouvons créer la fonction \texttt{elimNegation(f)} qui nous renverra le corps de la formule f avec le moins de négation possible.\\
+à l'aide de celles-ci nous pouvons créer la fonction \texttt{elimNegation(f)} qui nous renverra le corps de la formule f avec le moins de négations possible.\\
 
-De ce fait, nous pouvons transformer notre formule en forme normale disjonctive pour faciliter la procédure de décision. Pour cela nous avons déjà la fonction \texttt{dnf(f)} qui prend une formule sans quantificateur et renvoie celle-ci sous forme normale disjonctive. Nous créons donc simplement une formule \texttt{toDisjonctive(f)} qui enlèvera les quantificateurs de la formule avant d'y appliquer notre fonction \texttt{dnf(f)}. \\
+De ce fait, nous pouvons transformer notre formule en forme normale disjonctive pour faciliter la procédure de décision. Pour cela nous avons déjà la fonction \texttt{dnf(f)} qui prend une formule sans quantificateur et renvoie celle-ci sous forme normale disjonctive. Nous créons donc simplement une fonction \texttt{toDisjonctive(f)} qui enlève les quantificateurs de la formule avant d'y appliquer notre fonction \texttt{dnf(f)}. \\
 
-Pour la dernière étape du prétraitement et comme expliqué dans la partie méthodologie nous allons créer une foction qui nous renvoie une nouvelle liste, celle qui représentera notre forme normale disjonctive sous la forme de sous formule composée exclusivement de conjonction. Le but de cette fonction que nous appellerons \texttt{tirerQuantif(f)}, est de donner cette forme à notre formule : $\bigvee_j (\exists x\, \psi_j)$. Les termes de cette disjonction étant chacun des éléments de notre nouvelle liste, les $\psi_j$ sont eux un ensemble d'aucune ou de plusieurs conjoctions de relations $u \prec v$ ou $u = v$..
+Pour la dernière étape du prétraitement et comme expliqué dans la partie méthodologie nous allons créer une fonction qui nous renvoie une nouvelle liste, celle qui représentera notre forme normale disjonctive sous la forme de sous-formules composées exclusivement de conjonctions. Le but de cette fonction que nous appellerons \texttt{tirerQuantif(f)}, est de donner cette forme à notre formule : $\bigvee_j (\exists x\, \psi_j)$. Les termes de cette disjonction étant chacun des éléments de notre nouvelle liste, les $\psi_j$ sont eux un ensemble d'aucune ou de plusieurs conjonctions de relations $u \prec v$ ou $u = v$..
 
-A cette étape nous avons donc finie la partie de prétraitement de notre formule, nous avons obtenue à l'arrivé une disjonction de sous formule conjonctive que nous allons désormais pouvoir étudier. Cela dans la partie \textbf{\hyperlink{sec:suppression}{Suppression de variables}}.
+À cette étape nous avons donc fini la partie de prétraitement de notre formule, nous avons obtenu à l'arrivée une disjonction de sous-formules conjonctives que nous allons désormais pouvoir étudier. Cela dans la partie \textbf{\hyperlink{sec:suppression}{Suppression de variables}}.
 
 \subsubsection{\underline{Suppression de variables}}
 \label{sec:suppression}
 
-Dans cette partie nous allons enfin nous focaliser sur la résolution de notre formule, on rappelle que nous avons obtenue par le biais des partie précédente et de leurs modifications sur notre formule générale une liste de sous formule toute composé uniquement de conjonction. Nous pouvons donc désormais traiter chacune d'entre elle à travers de multiples étapes que l'on va vous expliciter.\\
+Dans cette partie nous allons enfin nous focaliser sur la résolution de notre formule, nous rappelons que nous avons obtenu par le biais des parties précédentes et de leurs modifications sur notre formule générale une liste de sous-formules toutes composées uniquement de conjonctions. Nous pouvons donc désormais traiter chacune d'entre elles à travers de multiples étapes que l'on va vous expliciter.\\
 
-Tout d'abord commençons par les deux premières étapes qui seront les plus simples, la première est de retirer tout les quantificateurs inutiles de notre formule, c'est à dire ceux qui ne concerne aucune variable de notre sous-formule. Par exemple ($\exists y.$) dans $\exists x. \exists y. x = x$. Pour cela nous créerons la fonction \texttt{elimQuantifInutile(f)} qui nous renverras notre liste avec chaque sous-formules démunie de ses quantificateurs inutiles.
+Tout d'abord commençons par les deux premières étapes qui seront les plus simples, la première est de retirer tous les quantificateurs inutiles de notre formule, c'est-à-dire ceux qui ne concernent aucune variable de notre sous-formule. Par exemple ($\exists y.$) dans $\exists x. \exists y. x = x$. Pour cela nous créerons la fonction \texttt{elimQuantifInutile(f)} qui nous renverra notre liste avec chaque sous-formules démunie de ses quantificateurs inutiles.
 
-Notre deuxième étapes sera de rechercher exactement cette relation (x < x) dans chacune des sous-formules, si elle est présente alors celle-ci sera modifié pour devenir : $\bot$.\\
+Notre deuxième étape sera de rechercher exactement cette relation (x < x) dans chacune des sous-formules, si elle est présente alors celle-ci sera modifiée pour devenir : $\bot$.\\
 
-Par la suite nous devrons utiliser une implémentation et méthodologie différente, celle-ci est comme les autres décrites dans partie \textbf{\nameref{sec:representation}}.
+Par la suite nous devrons utiliser une implémentation et méthodologie différente, celle-ci est comme les autres décrites dans la section \nameref{sec:representation}.
 
-Nous sommes donc ici dans le cas où il n'y a pas la relation x < x dans notre formule, nous allons donc regrouper en 4 parties les conjonctions de notre formule, comme expliqué dans la section \nameref{sec:representation} nous aurons la fonction \texttt{regrouperTermes(f,x)} qui va créer une liste de 4 listes composés des relations de la forme x < u, u < x, x = u et les termes où x n’apparaît pas, cela en se basant sur la variable x passé en paramètre. A partir d'ici nous pouvons distinguer trois cas et suivre le schéma proposé dans le sujet.
+Nous sommes donc ici dans le cas où il n'y a pas la relation x < x dans notre formule, nous allons donc regrouper en 5 parties les conjonctions de notre formule, comme expliqué dans la section \nameref{sec:representation} nous aurons la fonction \texttt{regrouperTermes(f,x)} qui va créer une liste de 5 listes composées des relations de la forme x < u, u < x, x = u et les termes où x n'apparaît pas, cela en se basant sur la variable x passée en paramètre. À partir d'ici nous pouvons distinguer trois cas et suivre le schéma proposé dans le sujet.
 
-S'il y a une relation "=" alors nous remplaçons x par sa nouvelle valeur, sinon si nous rencontrons les termes x < u et v < x alors on supprime x en les transformant en v < u. Et pour finir si nous avons que des relations x < ou < x alors nous gardons que les termes ne contenant pas x car these relations n'ont aucun impact sur la formule générale.
+S'il y a une relation "=" alors nous remplaçons x par sa nouvelle valeur, sinon si nous rencontrons les termes x < u et v < x alors on supprime x en les transformant en v < u. Et pour finir si nous avons que des relations x < ou < x alors nous gardons que les termes ne contenant pas x car ces relations n'ont aucun impact sur la formule générale.
 
 \subsubsection{\underline{Décision d'une formule}}
 
-Nous voila donc maintenant dans la dernière partie qui clôture notre programme de décision, celui-ci sera court et consistera simplement à effectuer l'ensemble de nos traitements sur la formule donné.
+Nous voilà donc maintenant dans la dernière partie qui clôture notre programme de décision, celui-ci sera court et consistera simplement à effectuer l'ensemble de nos traitements sur la formule donnée.
 
-Il contient la fonction principale de notre programme \texttt{decision(f)} qui sera expliciter dans la partie \textbf{\hyperlink{analyse_fonctions}{Analyse des fonctions}}. Le peu de fonction que contient cette partie consiste à effectuer une suppression de variable à l'aide des fonction mise en place dans la partie précédente ainsi qu'un enchaînement de celle ci.\\
+Il contient la fonction principale de notre programme \texttt{decision(f)} qui sera explicitée dans la partie \textbf{\hyperlink{analyse_fonctions}{Analyse des fonctions}}. Le peu de fonctions que contient cette partie consiste à effectuer une suppression de variable à l'aide des fonctions mises en place dans la partie précédente ainsi qu'un enchaînement de celle-ci.\\
 
-Commençons le fonctionnement de celle-ci, nous allons donc pour chaque conjonctions de notre formule de départ effectuer les différent cas mis en place, c'est à dire si x < x est présent, ou regrouper les termes pour ensuite faire une distinctions de cas. Suite à cela nous nous retrouvons forcément avec une formule réduite car nous avons supprimé une variable et donc un quantificateur de notre formule, mais pas sa négation s'il en avait une attention. Si cette suppression de variable nous suffit à avoir une constante $\top$ ou $\bot$ alors nous aurons fini le programme. Mais comme souvent cela ne suffit pas il est libre à l'utilisateur de faire une deuxième suppression de variable voire plus. C'est là qu'intervient \texttt{enchainementSupDeVar(conjonctions)} qui sera la fonction nous permettant cela. Celle-ci est comme un interface qui demande à l'utilisateur si celui ci veut supprimer une autre variable, c'est aussi ici que nous avons rajouté la fonctionnalité permettant à l'utilisateur de choisir s'il veut le détail de cette suppression car celui-ci est long et n'est pas forcément nécessaire à chaque fois.\\
+Commençons le fonctionnement de celle-ci, nous allons donc pour chaque conjonction de notre formule de départ effectuer les différents cas mis en place, c'est-à-dire si x < x est présent, ou regrouper les termes pour ensuite faire une distinction de cas. Suite à cela nous nous retrouvons forcément avec une formule réduite car nous avons supprimé une variable et donc un quantificateur de notre formule, mais pas sa négation s'il en avait une attention. Si cette suppression de variable nous suffit à avoir une constante $\top$ ou $\bot$ alors nous aurons fini le programme. Mais comme souvent cela ne suffit pas il est libre à l'utilisateur de faire une deuxième suppression de variable voire plus. C'est là qu'intervient \texttt{enchainementSupDeVar(conjonctions)} qui sera la fonction nous permettant cela. Celle-ci est comme un interface qui demande à l'utilisateur si celui-ci veut supprimer une autre variable, c'est aussi ici que nous avons ajouté la fonctionnalité permettant à l'utilisateur de choisir s'il veut le détail de cette suppression car celui-ci est long et n'est pas forcément nécessaire à chaque fois.\\
 
-Pour finir la fonction \texttt{decision(f)} consiste en un ensemble d'appel à ces fonctions que nous avons créés tout le long du projet et qui fini par l'appel à la dernière fonction du projet, \texttt{isFormuleValide(list)}. Qui avec la liste de conjonctions représentant notre formule de départ désormais devenu des constantes, à la suite des suppressions de variable, définie si notre formule est valide ou non.
+Pour finir la fonction \texttt{decision(f)} consiste en un ensemble d'appels à ces fonctions que nous avons créées tout le long du projet et qui finit par l'appel à la dernière fonction du projet, \texttt{isFormuleValide(list)}. Qui avec la liste de conjonctions représentant notre formule de départ désormais devenues des constantes, à la suite des suppressions de variable, définit si notre formule est valide ou non.
 
 \subsection{Analyse des fonctions}
 \hypertarget{analyse_fonctions}{}
@@ -200,25 +200,25 @@ Voici la liste des fonctions actuellement implantées dans le fichier (\texttt{f
 \subsubsection{\underline{Fonctions de base}}
 \begin{itemize}
     \item \textbf{dual(f)} : Parcourt récursivement l'arbre syntaxique pour inverser les opérateurs $\wedge$ et $\vee$.
-    \item \textbf{nnf(f)} : Transforme une formule en Forme Normale Négative en tirant les négations. Pour ce faire nous effectuons des tests sur chaque instance possible, si ce n'est pas une négation alors on applique la fonction sur le corps de la formule et si c'est une négation quatre possibilité apparaisses :
+    \item \textbf{nnf(f)} : Transforme une formule en Forme Normale Négative en tirant les négations. Pour ce faire nous effectuons des tests sur chaque instance possible, si ce n'est pas une négation alors on applique la fonction sur le corps de la formule et si c'est une négation quatre possibilités apparaissent :
 
-    Si c'est une constante on renvoie son inverse, si c'est une comparaison alors l'égalité devient deux inégalités et ainsi de suite pour si c'est des inégalités. Si c'est une autre négation alors la double négation s'annule puis si c'est une opération booléenne alors le OU devient ET en appliquant des négation sur les deux termes de l'opération.
-    \item \textbf{dnf(f)} : Convertit la formule en Forme Normale Disjonctive en utilisant la distributivité. Fonctionne de la même manière que \texttt{nnf()}, cette fois ci cela fonctionne récursivement en distribuant soit la conjonction soit la disjonction de sorte que l'on ait une disjonction de conjonction.
+    Si c'est une constante on renvoie son inverse, si c'est une comparaison alors l'égalité devient deux inégalités et ainsi de suite pour si c'est des inégalités. Si c'est une autre négation alors la double négation s'annule puis si c'est une opération booléenne alors le OU devient ET en appliquant des négations sur les deux termes de l'opération.
+    \item \textbf{dnf(f)} : Convertit la formule en Forme Normale Disjonctive en utilisant la distributivité. Fonctionne de la même manière que \texttt{nnf()}, cette fois ci cela fonctionne récursivement en distribuant soit la conjonction soit la disjonction de sorte que l'on ait une disjonction de conjonctions.
     \item \textbf{freeVar(f)} : Parcourt récursivement l'arbre syntaxique en ajoutant les variables liées dans un ensemble quelle renvoie ensuite.
-    \item \textbf{extraireQuantificateurs(f)} : Dans cette fonction itérative nous parcourons la formule dans une boucle "while" comportant 3 tests (il y a un quantificateur, un quantificateur précédé d'une négation ou deux négation à la suite). S'il y a deux négations alors on les supprime et on continue l'algorithme, sinon on ajoute dans une liste créé auparavant le quantificateur précédé ou non d'une négation.
+    \item \textbf{extraireQuantificateurs(f)} : Dans cette fonction itérative nous parcourons la formule dans une boucle "while" comportant 3 tests (il y a un quantificateur, un quantificateur précédé d'une négation ou deux négations à la suite). S'il y a deux négations alors on les supprime et on continue l'algorithme, sinon on ajoute dans une liste créé auparavant le quantificateur précédé ou non d'une négation.
     \item \textbf{reconstruireAvecQuantificateurs(body, quantif)} : Cette fonction plus simple recompose seulement notre formule à l'aide du corps et des quantificateurs, une boucle "for" parcoure la liste de quantificateur à l'envers et ajoute l'élément au début du corps déjà donné.
     \item \textbf{reconstruireAvecTermes(list)} : Dans le même style que\\
-    \texttt{reconstruireAvecQuantificateurs} cette fonction permet de reconstruire une formule sous forme normale conjonctive. La liste passée en paramètre étant composé de listes composé des termes de la formule nous avons simplement à parcourir ces listes et à placer une conjonction entre chaque termes, nous renvoyons ensuite le résultat de \texttt{reconstruireAvecQuantificateurs} appliqué au quantificateur étant la première liste de la liste passé en paramètre et à la formule que nous venons de reformer.
+    \texttt{reconstruireAvecQuantificateurs} cette fonction permet de reconstruire une formule sous forme normale conjonctive. La liste passée en paramètre étant composée de listes composées des termes de la formule nous avons simplement à parcourir ces listes et à placer une conjonction entre chaque termes, nous renvoyons ensuite le résultat de \texttt{reconstruireAvecQuantificateurs} appliqué au quantificateur étant la première liste de la liste passé en paramètre et à la formule que nous venons de reformer.
     \item \textbf{allVarInFormula(f)} : Cette fonction récursive nous permet de récupérer les variables de la formule. Pour cela nous effectuons comme dans la plupart des autres fonctions des tests sur le type de notre formule, si celui-ci est autre qu'une comparaison alors on applique la fonction récursivement sur le corps de notre formule, sinon on ajoute dans une liste, si elles y sont pas déjà les variables de notre comparaison.
-    \item \textbf{affichage()} : Ces deux fonctions nous servirons dans le programme principal à partir de la dernière partie de notre procédure de décision, c'est à dire lorsque nous manipulons une liste de sous-formules ou une liste de liste de termes. Elles permettes toute deux un affichage simplifié d'une formule à partir d'une simple liste passé en paramètre. De plus nous avons rajouté la possibilité de rajouter un préfixe passé en paramètre rendant l'affichage plus modulable.
-    \item \textbf{extract()} :  Ces trois fonctions similaire extracts marchent de la même manière, elles permettent de renvoyer une liste composé seulement des termes d'une seule sorte, égalité, inégalité, ... Pour cela nous "descendons" dans l'arbre syntaxique de la formule jusqu'à tomber sur une relation, si celle-ci est celle recherchée alors on l'ajoute à la liste sinon nous ne faisons rien.
+    \item \textbf{affichage()} : Ces deux fonctions nous servirons dans le programme principal à partir de la dernière partie de notre procédure de décision, c'est à dire lorsque nous manipulons une liste de sous-formules ou une liste de liste de termes. Elles permettent toutes deux un affichage simplifié d'une formule à partir d'une simple liste passé en paramètre. De plus nous avons rajouté la possibilité de rajouter un préfixe passé en paramètre rendant l'affichage plus modulable.
+    \item \textbf{extract()} :  Ces trois fonctions similaires extracts marchent de la même manière, elles permettent de renvoyer une liste composée seulement des termes d'une seule sorte, égalité, inégalité, ... Pour cela nous "descendons" dans l'arbre syntaxique de la formule jusqu'à tomber sur une relation, si celle-ci est celle recherchée alors on l'ajoute à la liste sinon nous ne faisons rien.
     \item \textbf{input\_formula\_interactive()} : Pour la création de cette fonction je me suis aidé de chatGPT pour pouvoir avoir la représentation la plus simple et compréhensible possible car il est difficile de rentrer une formule dans un terminal python. De ce fait nous avons créé un système basé sur un ensemble de choix qui se succède. 
 
     Tout d'abord un helper \texttt{choose(prompt, choices)} affiche un menu (clé → description) et boucle jusqu'à obtenir un choix valide.
 
-    Ensuite une fonction récursive build() demande le type de formule (5 choix) puis, selon le choix, demande les informations nécessaires et construit la sous-formule : ("1" Constante : demande True/False, "2" Comparaison : demande identifiant gauche/droite et opérateur (= ou <), ...).
+    Ensuite une fonction récursive build() demande le type de formule (5 choix) puis, selon le choix, demande les informations nécessaires et construit la sous-formule : ("1" Constante : demande True/False, "2" Comparaison : demande identifiant gauche, opérateur (= ou <) puis identifiant droit → retourne ComparF(left, Eq()|Lt(), right), ...).
 
-    Cela reste quand même une longue tache de rentrer une formule mais cela est déjà bien plus compréhensible que d'autre solution.
+    Cela reste quand même une longue tâche de rentrer une formule mais cela est déjà bien plus compréhensible que d'autres solutions.
     
     La description de l'utilisation de cette fonction se trouve en annexe. 
 \end{itemize}
@@ -230,7 +230,7 @@ Voici la liste des fonctions actuellement implantées dans le fichier (\texttt{f
     \item \textbf{toClose(f)} : Transforme une formule en formule close en ajoutant un quantificateur $\forall$ pour chaque variable libre.
     \item \textbf{isJustSymboleRelationnel(f)} : Parcourt récursivement l'arbre syntaxique de la formule et vérifie si elle est composée seulement de symboles relationnels et non de constante ou de fonction.
     \item \textbf{isElimPossible(f)} : Vérifie si la formule est close et qu'avec des symboles relationnels à l'aide des fonctions précédentes.
-    \item \textbf{isPrenexe(f)} : On vérifie que la formule sois sous la forme prénexe à l'aide d'une fonction qui renvoie si oui ou non une formule contient des quantificateurs. Tant qu ela formule commence par un quantificateur on appelle récursivement sur son contenue et sinon le reste de la formule ne doit pas contenir de quantificateur.
+    \item \textbf{isPrenexe(f)} : On vérifie que la formule soit sous la forme prénexe à l'aide d'une fonction qui renvoie si oui ou non une formule contient des quantificateurs. Tant que la formule commence par un quantificateur on appelle récursivement sur son contenu et sinon le reste de la formule ne doit pas contenir de quantificateur.
     \item \textbf{allToExist(f)} : Cette fonction se base seulement sur cette formule ($\forall x. \varphi \leftrightarrow \neg (\exists x. \neg \varphi)$) et l'applique à la formule donnée.\\
 \end{itemize}
 
@@ -238,14 +238,14 @@ Voici la liste des fonctions actuellement implantées dans le fichier (\texttt{f
 
 \begin{itemize}
     \item \textbf{tirerNegation(f)} : Comme nous l'avons dit précédemment nous allons nous aider de la fonction \textbf{nnf(f)} pour cette fonction là. Pour cela le seul enjeu est de donner la formule sans quantificateurs à notre sous fonction \textbf{nnf(f)}, ce qui se fait simplement avec la fonction \textbf{extraireQuantificateurs(f)}. Une fois fait nous pouvons appliquer \textbf{nnf(f)}.
-    \item \textbf{elimNegation(f)} : En utilisant les formules de négation cette formule parcourt l'arbre syntaxique de f pour remplacer le corps d'une négation en suivant la formule si cela est possible. Nous avons donc 2 cas pour les 2 implications de celles-ci. Plus un cas pour la double négation que l'on simplifiera.
-    \item \textbf{toDisjonctive(f)} : Tout comme pour \textbf{tirerNegation(f)} nous avons simplement à séparer le corps de la formule de ses quantificateurs avec \textbf{extraireQuantificateurs(f)} puis nous appliquons notre fonction \textbf{dnf(f)}. A cette fonction sera associé \textbf{isDisjonctive(f)} qui vérifie si notre formule est bien sous forme normale disjonctive.
-    \item \textbf{isDisjonctive(f)} : Parcoure notre formule et vérifie si celle-ci est bien une disjonction de conjonctions. Autrement dit qu'il n'y a pas de disjonction dans une suite de conjonctions et que les deux cotés d'une disjonction sont des formes normales disjonctives.
-    \item \textbf{tirerQuantif(f)} : Cette formule nous est très importante car elle nous permet de séparer notre formule générale en plusieurs sous formules qui seront plus simple à décider. 
+    \item \textbf{elimNegation(f)} : En utilisant les formules de négation cette fonction parcourt l'arbre syntaxique de f pour remplacer le corps d'une négation en suivant la formule si cela est possible. Nous avons donc 2 cas pour les 2 implications de celles-ci. Plus un cas pour la double négation que l'on simplifiera.
+    \item \textbf{toDisjonctive(f)} : Tout comme pour \textbf{tirerNegation(f)} nous avons simplement à séparer le corps de la formule de ses quantificateurs avec \textbf{extraireQuantificateurs(f)} puis nous appliquons notre fonction \textbf{dnf(f)}. À cette fonction sera associé \textbf{isDisjonctive(f)} qui vérifie si notre formule est bien sous forme normale disjonctive.
+    \item \textbf{isDisjonctive(f)} : Parcoure notre formule et vérifie si celle-ci est bien une disjonction de conjonctions. Autrement dit qu'il n'y a pas de disjonction dans une suite de conjonctions et que les deux côtés d'une disjonction sont des formes normales disjonctives.
+    \item \textbf{tirerQuantif(f)} : Cette fonction nous est très importante car elle nous permet de séparer notre formule générale en plusieurs sous-formules qui seront plus simples à décider. 
     
-    De plus nous partons d'une forme normale disjonctive donc il nous suffit dans cette fonction de récupérer chaque sous formule qui n'est pas composée de disjonction. Pour cela on fait appel à une forme itérative de fonction basée sur un algorithme similaire au parcours d'un arbre binaire en largeur avec une liste. 
+    De plus nous partons d'une forme normale disjonctive donc il nous suffit dans cette fonction de récupérer chaque sous-formule qui n'est pas composée de disjonction. Pour cela on fait appel à une forme itérative de fonction basée sur un algorithme similaire au parcours d'un arbre binaire en largeur avec une liste. 
     
-    De ce fait, on commence par vérifier si notre formule est une disjonction, si c'est le cas on ajoute ces deux côtés dans notre liste de disjonctions, sinon on ajoute directement la formule entière. Puis nous lançons une boucle qui parcoure notre liste de disjonctions en traitant chaque éléments de celle-ci, si c'est encore une disjonction alors on ajoute de nouveau dans la même liste, sinon on ajoute la conjonction ou simplement la relation dans la liste que nous renverrons.\\
+    De ce fait, on commence par vérifier si notre formule est une disjonction, si c'est le cas on ajoute ces deux côtés dans notre liste de disjonctions, sinon on ajoute directement la formule entière. Puis nous lançons une boucle qui parcoure notre liste de disjonctions en traitant chaque élément de celle-ci, si c'est encore une disjonction alors on ajoute de nouveau dans la même liste, sinon on ajoute la conjonction ou simplement la relation dans la liste que nous renverrons.\\
 \end{itemize}
 
 \textbf{Fonctions de suppression de variable :}
@@ -255,54 +255,54 @@ Voici la liste des fonctions actuellement implantées dans le fichier (\texttt{f
 
     Ici toute la difficulté est dans les négations, si un quantificateur est inutile alors on le supprime, rien de compliqué. Mais si celui-ci est précédé d'une négation alors on l'applique sur le quantificateur suivant. 
     
-    Dès lors nous avons 3 cas : Si celui-ci n'a pas déjà de négation alors on la décale devant celui-ci, sinon on supprime la négation (car deux à la suite) et dans le dernier cas, si c'était le dernier quantificateur alors on décale cette négation au corps de la formule. Pour tout ces tests on s'est aidé du booléen \texttt{isNot} qui correspond au manque ou non d'une négation. En aucun cas lors de cette fonction nous supprimons une négation car cela modifierait le sens logique de la formule.\\
+    Dès lors nous avons 3 cas : Si celui-ci n'a pas déjà de négation alors on la décale devant celui-ci, sinon on supprime la négation (car deux à la suite) et dans le dernier cas, si c'était le dernier quantificateur alors on décale cette négation au corps de la formule. Pour tous ces tests on s'est aidé du booléen \texttt{isNot} qui correspond au manque ou non d'une négation. En aucun cas lors de cette fonction nous supprimons une négation car cela modifierait le sens logique de la formule.\\
     
-    \item \textbf{searchXltX(list)} : Cette fonction récursive parcourt notre formule et recherche si la relation x < x est présente, pour cela nous faisons un appel récursif sur le corps d'une négation d'un quantificateur ou des sous formules d'une opération, jusqu'à atteindre une relation où nous vérifions si celle ci est de la forme x < x.\\
+    \item \textbf{searchXltX(list)} : Cette fonction récursive parcourt notre formule et recherche si la relation x < x est présente, pour cela nous faisons un appel récursif sur le corps d'une négation d'un quantificateur ou des sous-formules d'une opération, jusqu'à atteindre une relation où nous vérifions si celle-ci est de la forme x < x.\\
     
-    \item \textbf{regrouperTermes(f,x)} : Cette fonction très importante se décompose assez facilement en un ensemble de fonctions très semblables sur des relations. En effet pour cela nous avons créés trois fonctions \textbf{extractultx, ..xltu et ..eqx} qui nous permettes très simplement de récupérer les relations correspondante, celles-ci sont décrite dans la partie \texttt{Fonction de bases}. 
+    \item \textbf{regrouperTermes(f,x)} : Cette fonction très importante se décompose assez facilement en un ensemble de fonctions très semblables sur des relations. En effet pour cela nous avons créés trois fonctions \textbf{extractultx, ..xltu et ..eqx} qui nous permettent très simplement de récupérer les relations correspondantes, celles-ci sont décrites dans la partie \texttt{Fonction de bases}. 
     
-    Une fois ces relations récupérés nous les plaçons à la suite dans une liste précédée des quantificateurs. Pour finir nous avons créés la fonction récursive interne \textbf{removeExtractedTerms(f)} qui marche de la même manière que extract mais qui renvoie la liste seulement composé des relations sans la variable x, soit les relations qui ne sont pas déjà dans la liste. Nous avons donc à la fin de cette fonction notre formule sous forme de liste avec les relations regroupé selon leur genre.\\
+    Une fois ces relations récupérées nous les plaçons à la suite dans une liste précédée des quantificateurs. Pour finir nous avons créé la fonction récursive interne \textbf{removeExtractedTerms(f)} qui marche de la même manière que extract mais qui renvoie la liste seulement composée des relations sans la variable x, soit les relations qui ne sont pas déjà dans la liste. Nous avons donc à la fin de cette fonction notre formule sous forme de liste avec les relations regroupées selon leur genre.\\
     
-    \item \textbf{xeqw(f,x)} : Après avoir regroupé les termes nous pouvons supprimer la variable x, cette fonction traite de la cas de la présence de la relation x = u. Une fois la variable u récupérée nous parcourons tout les termes de notre liste afin de remplacer les occurrences de x par u et dans le même temps supprimer les relations u = u qui apparaîtrons.\\
+    \item \textbf{xeqw(f,x)} : Après avoir regroupé les termes nous pouvons supprimer la variable x, cette fonction traite de la cas de la présence de la relation x = u. Une fois la variable u récupérée nous parcourons tout les termes de notre liste afin de remplacer les occurrences de x par u et dans le même temps supprimer les relations u = u qui apparaîtront.\\
     
-    \item \textbf{simplifierInegalites(list,list)} : Cette fonction traite le cas où il y a les relations x < u et v < x dans notre formule. Elle prend en paramètre la liste des relations x < et < x afin de les simplifier. Pour cela nous allons simplement parcourir les deux listes avec deux boucles imbriquées, pour chacune des relations du type (x < u) et (v1 < x, v2 < x, ...) nous allons ajouter à notre nouvelle liste les relations (v1 < u, v2 < u, ...).Nous aurons alors supprimé toute les occurrences de x dans notre formule.
+    \item \textbf{simplifierInegalites(list,list)} : Cette fonction traite le cas où il y a les relations x < u et v < x dans notre formule. Elle prend en paramètre la liste des relations x < et < x afin de les simplifier. Pour cela nous allons simplement parcourir les deux listes avec deux boucles imbriquées, pour chacune des relations du type (x < u) et (v1 < x, v2 < x, ...) nous allons ajouter à notre nouvelle liste les relations (v1 < u, v2 < u, ...). Nous aurons alors supprimé toutes les occurrences de x dans notre formule.
 \end{itemize}
 
 \subsubsection{\underline{Fonctions de décision d'une formule}}
 
 \begin{itemize}
-    \item \textbf{supDeVariables(f,bool)} : Comme supposé dans le nom cette fonction nous permet de supprimer une variable dans une conjonction. Pour se faire nous allons vérifier si notre formule n'est pas déjà une constante ou si celle ci contient la relation x < x à l'aide de la fonction \texttt{searchXltX}, ces cas étant les plus simple à traiter. 
+    \item \textbf{supDeVariables(f,bool)} : Comme supposé dans le nom cette fonction nous permet de supprimer une variable dans une conjonction. Pour se faire nous allons vérifier si notre formule n'est pas déjà une constante ou si celle-ci contient la relation x < x à l'aide de la fonction \texttt{searchXltX}, ces cas étant les plus simples à traiter. 
     
-    Si ce n'est pas le cas nous regroupons les termes comme expliquer plus haut dans la partie \texttt{Implantation de la procédure de décision}. Ce suit alors un enchaînement de test nous permettant de supprimer la variable "x". Cette fonction comporte une grosse partie d'affichage pour décrire les étapes de la suppression de variable. 
+    Si ce n'est pas le cas nous regroupons les termes comme expliqué plus haut dans la partie \texttt{Implantation de la procédure de décision}. Ce suit alors un enchaînement de tests nous permettant de supprimer la variable "x". Cette fonction comporte une grosse partie d'affichage pour décrire les étapes de la suppression de variable. 
     
-    De ce fait nous avons rajouter la possibilité de supprimer cet affichage grâce au booléen passée en paramètre en bloquant la sortie standard.\\
+    De ce fait nous avons rajouté la possibilité de supprimer cet affichage grâce au booléen passé en paramètre en bloquant la sortie standard.\\
     
-    \item \textbf{enchainementSupDeVar(list)} : Cette fonction est composée essentiellement d'input qui demande à l'utilisateur si celui-ci veut supprimer une variable ou bien afficher le détail de la suppression de variable. Cela prend beaucoup de place et c'est pour cela que nous avons créés une fonction à part entière pour cela, car pour chaque input nous devons faire une boucle "while" pour s'assurer que l'utilisateur rentre une réponse correcte. Tout cela dans une boucle "while" générale pour si l'utilisateur continue à exécuter des suppressions de variable\\
+    \item \textbf{enchainementSupDeVar(list)} : Cette fonction est composée essentiellement d'inputs qui demandent à l'utilisateur si celui-ci veut supprimer une variable ou bien afficher le détail de la suppression de variable. Cela prend beaucoup de place et c'est pour cela que nous avons créés une fonction à part entière pour cela, car pour chaque input nous devons faire une boucle "while" pour s'assurer que l'utilisateur rentre une réponse correcte. Tout cela dans une boucle "while" générale pour si l'utilisateur continue à exécuter des suppressions de variable\\
     
-    \item \textbf{isFormuleValide(list)} : Cette formule assez simple est composé simplement d'une boucle qui effectue sur chaque sous-formule un test, si celle-ci est $\top$ alors on renvoie True car si une sous formule d'une disjonction est vrai alors la formule entière l'est, sinon on passe à la sous formule suivante, si il n'y a aucun $\top$ alors on renvoie False.\\
+    \item \textbf{isFormuleValide(list)} : Cette fonction assez simple est composée simplement d'une boucle qui effectue sur chaque sous-formule un test, si celle-ci est $\top$ alors on renvoie True car si une sous-formule d'une disjonction est vraie alors la formule entière l'est, sinon on passe à la sous-formule suivante, si il n'y a aucun $\top$ alors on renvoie False.\\
     
-    \item \textbf{decision(formule)} : Voici notre formule générale de décision de formule celle-ci est assez simple et permet simplement de soulager le main.
-    Elle est composé de plusieur étape correspondant à celle suivit tout le long du projet. 
+    \item \textbf{decision(formule)} : Voici notre fonction générale de décision de formule celle-ci est assez simple et permet simplement de soulager le main.
+    Elle est composée de plusieurs étapes correspondant à celles suivies tout le long du projet. 
     
-    Tout d'abord avec les fonctions, \texttt{toClose, isClose, isElimPossible, allToExist} et \texttt{isJustSymboleRelationnel} nous vérifions les hypothèse et nous préparons la formule à être traité. 
+    Tout d'abord avec les fonctions, \texttt{toClose, isClose, isElimPossible, allToExist} et \texttt{isJustSymboleRelationnel} nous vérifions les hypothèses et nous préparons la formule à être traité. 
     
-    Ensuite nous effectuons le prétraitement de notre formule, nous exécutons à la suite sur notre formule les fonctions \texttt{tirerNegation et elimNegation} permettant de supprimer les négations sur le corps de la formule puis \texttt{toDisjonctive et tirerQuantif} pour séparer notre formule en sous formule sous forme normales conjonctives. 
+    Ensuite nous effectuons le prétraitement de notre formule, nous exécutons à la suite sur notre formule les fonctions \texttt{tirerNegation et elimNegation} permettant de supprimer les négations sur le corps de la formule puis \texttt{toDisjonctive et tirerQuantif} pour séparer notre formule en sous-formules sous formes normales conjonctives. 
     
-    Pour finir nous retirons les quantificateurs inutiles et appelons la fonction \texttt{enchainementSupDeVar} afin de supprimer les variables pour simplifier la formule. A la fin de tout cela nous appelons \texttt{isFormuleValide} pour vérifier la validité de notre formule.
+    Pour finir nous retirons les quantificateurs inutiles et appelons la fonction \texttt{enchainementSupDeVar} afin de supprimer les variables pour simplifier la formule. À la fin de tout cela nous appelons \texttt{isFormuleValide} pour vérifier la validité de notre formule.
 \end{itemize}
 
 \subsubsection{\underline{Fonction de tests et main}}
 
 \begin{itemize}
-    \item \textbf{Fonctions de tests} : Dans le dossier \texttt{DECISION} nous pouvons trouver un fichier \texttt{fonctions\_tests.py}, celui-ci comporte l'ensemble des fonctions de tests du programme. En effet chacune des fonctions utilisées dans le programme est testé par un ou plusieurs test de sorte à couvrir les cas qui pourrait potentiellement poser problème. 
+    \item \textbf{Fonctions de tests} : Dans le dossier \texttt{DECISION} nous pouvons trouver un fichier \texttt{fonctions\_tests.py}, celui-ci comporte l'ensemble des fonctions de tests du programme. En effet chacune des fonctions utilisées dans le programme est testée par un ou plusieurs tests de sorte à couvrir les cas qui pourraient potentiellement poser problème. 
     
-    Elles sont toute écrite approximativement de la même manière avec des formules déjà écrite passé en paramètre de la fonction puis un affichage permettant de vérifier si le résultat est bien celui attendu.
+    Elles sont toutes écrites approximativement de la même manière avec des formules déjà écrites passées en paramètre de la fonction puis un affichage permettant de vérifier si le résultat est bien celui attendu.
 
-    De plus nous retrouvons à la fin de ce fichier un suite de cinq fonction qui regroupe selon leur type les fonctions de tests, hypothèse, suppression de variable, .... De ce fait nous avons à la fin de notre fichier la fonction \texttt{test\_global()} qui effectue en fonction de la demande se l'utilisateur les fonction de tests associées.
+    De plus nous retrouvons à la fin de ce fichier un suite de cinq fonctions qui regroupent selon leur type les fonctions de tests, hypothèse, suppression de variable, .... De ce fait nous avons à la fin de notre fichier la fonction \texttt{test\_global()} qui effectue en fonction de la demande de l'utilisateur les fonctions de tests associées.
 
-    \item \textbf{Main} : Toujours dans ce même dossier nous pouvons retrouver le fichier \texttt{main.py} qui contient le programme à exécuter de notre projet.
+    \item \textbf{Main} : Toujours dans ce même dossier nous retrouvons le fichier \texttt{main.py} qui contient le programme à exécuter de notre projet.
 
-    Celui-ci est en grande partie composé d'input de l'utilisateur vis à vis du programme que celui-ci veut lancer. Il a alors trois choix, les tests, le programme sur une formule déjà donnée et le programme sur une fonction rentré par l'utilisateur. A la fin de cela le programme main.py exécute alors le programme associé, c'est a dire \texttt{test\_global(), decision(formule)} ou bien \texttt{input\_formula\_interactive()} puis \texttt{decision(formule)}.
+    Celui-ci est en grande partie composé d'inputs de l'utilisateur vis-à-vis du programme que celui-ci veut lancer. Il a alors trois choix, les tests, le programme sur une formule déjà donnée et le programme sur une fonction rentrée par l'utilisateur. À la fin de cela le programme main.py exécute alors le programme associé, c'est-à-dire \texttt{test\_global(), decision(formule)} ou bien \texttt{input\_formula\_interactive()} puis \texttt{decision(formule)}.
 \end{itemize}
 
 \newpage
@@ -313,24 +313,24 @@ Voici la liste des fonctions actuellement implantées dans le fichier (\texttt{f
 
 \subsection{Première idée de représentation des données}
 
-Avant l'arrivé de la représentation de nos sous-formules avec une liste composé de 5 listes de termes. Nous avons eu l'idée d'une représentation assez similaire basé sur des dictionnaires.\\
+Avant l'arrivée de la représentation de nos sous-formules avec une liste composée de 5 listes de termes. Nous avons eu l'idée d'une représentation assez similaire basée sur des dictionnaires.\\
 
 Voici donc un extrait de notre ancienne explication vis-à-vis de cette idée de représentation :\\
 
-Elle sera composé d'une liste et de deux dictionnaires dont on va vous expliquer l'utilité :
+Elle sera composée d'une liste et de deux dictionnaires dont on va vous expliquer l'utilité :
 \begin{itemize}
-    \item Tout d'abord comme suggéré dans le sujet nous aurons une liste avec les variables de notre formule qui seront alors chacune associée à un quantificateur existentiel car les hypothèses pour la procédure de décision seront déjà satisfaites à cette étape. Par exemple pour la formule suivante $\exists x\,\exists y\,\exists z\,\varphi$ nous aurons la liste [x,y,z] dans cette ordre pour pouvoir éliminer les quantificateurs à partir du dernier élément de la liste jusqu'au premier. Cet ordre est simplement pour une meilleure compréhension car en python nous pouvons accéder facilement au dernier élément d'une liste, sinon nous aurons inversé l'ordre pour l'utiliser comme une pile en ajoutant les variables à partir du début de la formule. De même, la liste ne sera pas exactement celle-ci mais plutôt [sub=QuantifF(q=Ex(), var='x', body=None), QuantifF(q=Ex(), var='y', body=None), QuantifF(q=Ex(), var='z', body=None)], de ce fait nous pourrons rajouter les négations dans cette liste.\\
+    \item Tout d'abord comme suggéré dans le sujet nous aurons une liste avec les variables de notre formule qui seront alors chacune associée à un quantificateur existentiel car les hypothèses pour la procédure de décision seront déjà satisfaites à cette étape. Par exemple pour la formule suivante $\exists x\,\exists y\,\exists z\,\varphi$ nous aurons la liste [x,y,z] dans cet ordre pour pouvoir éliminer les quantificateurs à partir du dernier élément de la liste jusqu'au premier. Cet ordre est simplement pour une meilleure compréhension car en Python nous pouvons accéder facilement au dernier élément d'une liste, sinon nous aurions inversé l'ordre pour l'utiliser comme une pile en ajoutant les variables à partir du début de la formule. De même, la liste ne sera pas exactement celle-ci mais plutôt [sub=QuantifF(q=Ex(), var='x', body=None), QuantifF(q=Ex(), var='y', body=None), QuantifF(q=Ex(), var='z', body=None)], de ce fait nous pourrons rajouter les négations dans cette liste.\\
 \end{itemize}
 
-Ensuite nous avons penser à une suite de cette représentation qui sera possible juste après avoir tiré les négations à l'intérieur de notre formule. Nous aurons besoin deux dictionnaires pour cela :
+Ensuite nous avons pensé à une suite de cette représentation qui sera possible juste après avoir tiré les négations à l'intérieur de notre formule. Nous aurons besoin de deux dictionnaires pour cela :
 
 \begin{itemize}
-    \item Le premier dictionnaire que nous appellerons dicoEqual sera composé de toute les égalités de la formule ou sous-formule étudié.
-    \item Dans le même style que le premier nous aurons le dictionnaire dicoLeft qui sera composé de toute les inégalités de la formule ou d'une sous-formule.\\
+    \item Le premier dictionnaire que nous appellerons dicoEqual sera composé de toutes les égalités de la formule ou sous-formule étudiée.
+    \item Dans le même style que le premier nous aurons le dictionnaire dicoLeft qui sera composé de toutes les inégalités de la formule ou d'une sous-formule.\\
 \end{itemize}
 
-Pour les cas simple ces deux dictionnaires suffisent mais dès lors que nous aurons des formules constituées de $\lor$ et de $\land$ nous devrons séparer notre formule en sous formule pour les résoudre les unes après les autres. 
-Lorsque nous rencontrons un $\land$ nous pouvons mettre l'égalité ou l'inégalité dans le même dictionnaire mais si nous avons un $\lor$ il faut alors extraire les deux sous formules et créer les deux dictionnaires pour chacun afin de résoudre cela.
+Pour les cas simples ces deux dictionnaires suffisent mais dès lors que nous aurons des formules constituées de $\lor$ et de $\land$ nous devrons séparer notre formule en sous-formules pour les résoudre les unes après les autres. 
+Lorsque nous rencontrons un $\land$ nous pouvons mettre l'égalité ou l'inégalité dans le même dictionnaire mais si nous avons un $\lor$ il faut alors extraire les deux sous-formules et créer les deux dictionnaires pour chacune afin de résoudre cela.
 
 \newpage
 \subsection{Utilisation de \textbf{input\_formula\_interactive()}}
@@ -339,7 +339,7 @@ Voici dans cette annexe une courte explication de l'utilisation de la fonction\\
 
 Cette fonction permet à l'utilisateur de construire une formule étape par étape en faisant des choix dans le terminal.
 
-Voici donc la liste des choix possible ainsi que le déroulement une fois ceux la choisit :\\
+Voici donc la liste des choix possibles ainsi que le déroulement une fois ceux-là choisis :\\
 
 \begin{enumerate}
     \item — Constante : demande True/False → retourne ConstF.
@@ -349,7 +349,7 @@ Voici donc la liste des choix possible ainsi que le déroulement une fois ceux l
     \item — Quantificateur : choisit $\forall$ ou $\exists$, lit la variable liée puis construit récursivement le corps → QuantifF(All()|Ex(), var, body).\\
 \end{enumerate}
 
-Tout les choix de menu sont vérifiés : les noms des variables comme les chiffres entrés lors du choix. Pour finir la fonction affiche la formule construite et la retourne.
+Tous les choix de menu sont vérifiés : les noms des variables comme les chiffres entrés lors du choix. Pour finir la fonction affiche la formule construite et la retourne.
 
 Remarque : la construction est récursive, donc vous pouvez imbriquer autant de sous-formules que nécessaire.
 
