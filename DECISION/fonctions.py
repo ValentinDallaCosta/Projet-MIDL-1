@@ -685,7 +685,10 @@ def supDeVariables(formules: list, affichage: bool) -> list:
     return_formules = []
     for i, f in enumerate(formules, 1):
         body, quantifiers = extraireQuantificateurs(f)
-        if (isinstance(body,NotF) and isinstance(body.sub,ConstF)) or ((not isinstance(body,NotF)) and isinstance(body,ConstF)):
+        if (isinstance(body,NotF) and isinstance(body.sub,ConstF)):
+            print(f"Formule {i} : Notre formule est la négation d'une constante donc on renvoie sa négation.")
+            return_formules.append(body.sub)
+        elif (not isinstance(body,NotF)) and isinstance(body,ConstF):
             print(f"Formule {i} : Notre formule est déjà une constante donc on n'a plus rien a supprimer.")
             return_formules.append(f)
             
@@ -746,7 +749,6 @@ def enchainementSupDeVar(conjunctions: list):
         print("Choix invalide. Veuillez entrer 1 ou 2 :")
         reponse = input("")
 
-    formule_after_sup = conjunctions
     while (reponse == "1"):
         print("\nSuppression d'une variable x dans chaque conjonction :")
         print("Voulez-vous avec détail le déroulé de cette suppression ?")
@@ -761,8 +763,8 @@ def enchainementSupDeVar(conjunctions: list):
             conjunctions = supDeVariables(conjunctions,False)
         
         print("Formule après suppression d'une variable et sans les quatificateurs inutiles:")
-        formule_after_sup = elimQuantifInutile(conjunctions)
-        affichageListeFormules(formule_after_sup, "    ")
+        conjunctions = elimQuantifInutile(conjunctions)
+        affichageListeFormules(conjunctions, "    ")
 
         print("Voulez-vous procéder à la suppression d'une autre variable ?")
         reponse = input("1 : oui / 2 : non : ")
@@ -770,13 +772,16 @@ def enchainementSupDeVar(conjunctions: list):
             print("Choix invalide. Veuillez entrer 1 ou 2 :")
             reponse = input("")
     
-    return formule_after_sup
+    return conjunctions
 
 def isFormuleValide(formules: list):
+    nb_formule = len(formules)
     for f in formules:
+        if isinstance(f,ConstF) and f.val == False:
+            nb_formule -= 1
         if isinstance(f,ConstF) and f.val == True:
-            return True
-    return False
+            return 1
+    return 2 if nb_formule == 0 else 1
 
 def decision(g: Formula) -> bool:
     """Procédure de décision d'une formule"""
@@ -823,18 +828,21 @@ def decision(g: Formula) -> bool:
         print(f"La formule de départ {g} A été simplifiée après la procédure de décision en la liste de sous-formule :")
         affichageListeFormules(formule_after_sup, "     ")
         # Étape 5 : Vérification de la validité
-        if isFormuleValide(formule_after_sup):
+        if isFormuleValide(formule_after_sup) == 1:
             print(f"Cette liste de sous-formule contient une ou plusieur formule vrai donc notre formule générale est vrai, ")
             print("car c'est une disjonction de ces sous-formules.")
             continuer = "2"
-        else:
+        elif isFormuleValide(formule_after_sup) == 0:
             print(f"Cette liste de sous-formule contient aucune formule vrai ou n'a pas encore subit assez de suppression")
             print("de variable pour qu'on puisse l'évaluer. Donc notre formule générale est fausse, car c'est une disjonction de ces sous-formules.")
             print("Voulez vous essayer de supprimer d'autre variables pour rendre la formule plus simple ? :")
             continuer = input("1 : oui / 2 : non : ")
             while continuer not in ["1", "2"]:
                 print("Choix invalide. Veuillez entrer 1 ou 2 :")
-                continuer = input("")   
+                continuer = input("")
+        elif isFormuleValide(formule_after_sup) == 2:
+            print(f"Cette liste de sous-formule contient que des formules fausses donc par conséquent notre formule générale est fausse.")
+            continuer = "0"
 
     return True
     
