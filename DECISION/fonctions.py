@@ -94,7 +94,7 @@ def dnf(f: Formula) -> Formula:
     else:
         raise ValueError("dnf: type non connu")   
 
-def freeVar(f: Formula, bound_vars=None) -> list:
+def freeVar(f: Formula, bound_vars=None) -> list[str]:
     """Retourne la liste (éventuellement vide) des variables libres de la formule f."""
     if bound_vars is None:
         bound_vars = set()
@@ -120,7 +120,7 @@ def freeVar(f: Formula, bound_vars=None) -> list:
     else:
         raise ValueError("isClose: type non connu")   
 
-def extraireQuantificateurs(f: Formula) -> Tuple[Formula, list]:
+def extraireQuantificateurs(f: Formula) -> Tuple[Formula, list[Formula]]:
     """Extrait les quantificateurs de la formule et retourne le corps sans quantificateurs
     ainsi que la liste des quantificateurs extraits."""
     quantifiers = []
@@ -149,7 +149,7 @@ def extraireQuantificateurs(f: Formula) -> Tuple[Formula, list]:
 
     return body, quantifiers
 
-def reconstruireAvecQuantificateurs(body: Formula, quantifiers: list) -> Formula:
+def reconstruireAvecQuantificateurs(body: Formula, quantifiers: list[Formula]) -> Formula:
     """Reconstruit la formule en réappliquant les quantificateurs extraits.""" 
     for q in reversed(quantifiers):
         if isinstance(q, NotF):
@@ -159,7 +159,7 @@ def reconstruireAvecQuantificateurs(body: Formula, quantifiers: list) -> Formula
             body = QuantifF(q.q, q.var, body)
     return body
 
-def reconstruireAvecTermes(terms: list) -> Formula:
+def reconstruireAvecTermes(terms: list[list[Formula]]) -> Formula:
     """Reconstruit une formule à partir d'une liste de listes de termes et de quantificateurs."""
 
     # On construit la formule à partir des termes
@@ -173,7 +173,7 @@ def reconstruireAvecTermes(terms: list) -> Formula:
             body = BoolOpF(body, Conj(), term)  # On construit une conjonction de tous les termes
     return reconstruireAvecQuantificateurs(body, terms[0])
 
-def allVarInFormula(f: Formula) -> list:
+def allVarInFormula(f: Formula) -> list[str]:
     """Retourne toutes les variables présentes dans une formule."""
     if isinstance(f, QuantifF):
         return allVarInFormula(f.body)
@@ -188,12 +188,12 @@ def allVarInFormula(f: Formula) -> list:
     else:
         return []
 
-def affichageListeFormules(formules: list, prefix="") -> None:
+def affichageListeFormules(formules: list[Formula], prefix="") -> None:
     """Affiche une liste de formules."""
     for i, f in enumerate(formules, 1):
         print(f"{prefix}Formule {i} :", f)
 
-def affichageListeTermes(terms: list, prefix="") -> None:
+def affichageListeTermes(terms: list[Formula], prefix="") -> None:
     """Affiche une liste de termes à la suite espacé d'un tiret"""
     print(f"    {prefix}", end="")
     for term in terms:
@@ -201,7 +201,7 @@ def affichageListeTermes(terms: list, prefix="") -> None:
         print(f" {term} -", end="")
     print()
 
-def affichageFormuleAvecTermes(formule: list) -> None:
+def affichageFormuleAvecTermes(formule: list[list[Formula]]) -> None:
     if formule[1] != []:
         affichageListeTermes(formule[1],"     Termes de la forme x < u :")
     if formule[2] != []:
@@ -267,7 +267,7 @@ def input_formula_interactive() -> Formula:
     print("Formule saisie :", f)
     return f
 
-def extractxltu(f: Formula, x: str) -> list:
+def extractxltu(f: Formula, x: str) -> list[Formula]:
     """Extrait les termes de la formule f sans quantificateurs tel que x < u pour tout u."""
     if isinstance(f, BoolOpF):
         terms = extractxltu(f.left, x) + extractxltu(f.right, x)
@@ -285,7 +285,7 @@ def extractxltu(f: Formula, x: str) -> list:
 
     return terms
 
-def extractultx(f: Formula, x: str) -> list:
+def extractultx(f: Formula, x: str) -> list[Formula]:
     """Extrait les termes de la formule f sans quantificateurs tel que u < x pour tout u."""
     if isinstance(f, BoolOpF):
         terms = extractultx(f.left, x) + extractultx(f.right, x)
@@ -303,7 +303,7 @@ def extractultx(f: Formula, x: str) -> list:
 
     return terms
 
-def extracteqx(f: Formula, x: str) -> list:
+def extracteqx(f: Formula, x: str) -> list[Formula]:
     """Extrait les termes de la formule f sans quantificateurs tel que w = x ou x = w pour tout w."""
     if isinstance(f, BoolOpF):
         terms = extracteqx(f.left, x) + extracteqx(f.right, x)
@@ -501,21 +501,23 @@ def isDisjonctive(f: Formula) -> bool:
     else:
         return False
 
-def tirerQuantif(f: Formula) -> Formula:
+def tirerQuantif(f: Formula) -> list[Formula]:
     """Tire les quantificateurs devant les formules extraites d'une formule
     en forme normale disjonctive."""
 
     # Liste de conjonctions avec leurs quantificateurs
-    conjunctions = []
+    conjunctions: list[Formula] = []
 
     #On récupère les quantificateurs
+    body: Formula
+    quantifiers: list[Formula]
     body, quantifiers = extraireQuantificateurs(f)
 
     # On traite chaque disjonction
     if isinstance(body, BoolOpF) and isinstance(body.op, Disj):
-        disjuncts = [body.left, body.right]
+        disjuncts: list[Formula] = [body.left, body.right]
     else:
-        disjuncts = [body]
+        disjuncts: list[Formula] = [body]
 
     for disj in disjuncts:
         # Pour chaque sous formule d'une disjonction on teste si c'est une conjonction
@@ -533,17 +535,19 @@ def tirerQuantif(f: Formula) -> Formula:
 
 #---Fonctions permettant la suppression de variables---#
 
-def elimQuantifInutile(conjonctions: list) -> list:
+def elimQuantifInutile(conjonctions: list[Formula]) -> list[Formula]:
     """Elimine les quantificateurs inutiles de la formule f."""
     # Si x n'appartient pas au variable de ψ : (∃x. ψ) ↔ ψ
-    returned_conjonctions = []
-    isNot = False
+    returned_conjonctions: list[Formula] = []
+    isNot: bool = False
 
     for conj in conjonctions:
-        vars_in_formula = allVarInFormula(conj)
+        vars_in_formula: list[str] = allVarInFormula(conj)
         # On extrait les quantificateurs
+        body: Formula
+        quantifiers: list[Formula]
         body, quantifiers = extraireQuantificateurs(conj)
-        useful_quantifiers = []
+        useful_quantifiers: list[Formula] = []
 
         # On filtre les quantificateurs inutiles
         for q in quantifiers:
@@ -576,19 +580,21 @@ def elimQuantifInutile(conjonctions: list) -> list:
             # Si le dernier quantificateur était inutile et précédé d'une négation, on ajoute la négation
             body = NotF(body)
             isNot = False
-        conj = reconstruireAvecQuantificateurs(body, useful_quantifiers)
+        conj: Formula = reconstruireAvecQuantificateurs(body, useful_quantifiers)
         returned_conjonctions.append(conj)
     return returned_conjonctions
 
-def regrouperTermes(f: Formula, x: str) -> list:
+def regrouperTermes(f: Formula, x: str) -> list[list[Formula]]:
     """regrouper les termes de ψ en : (∧i x ≺ui) ∧ (∧j vj ≺x) ∧ (∧k wk = x) ∧ χ avec x /∈fv(χ)"""
     
     # Pour chaque formule de la liste on crée les listes de termes
+    body: Formula
+    quantifiers: list[Formula]
     body, quantifiers = extraireQuantificateurs(f)
 
-    less_than_terms = extractxltu(body, x)
-    greater_than_terms = extractultx(body, x)
-    equal_terms = extracteqx(body, x)
+    less_than_terms: list[Formula] = extractxltu(body, x)
+    greater_than_terms: list[Formula] = extractultx(body, x)
+    equal_terms: list[Formula] = extracteqx(body, x)
 
     # On récupère le reste de la formule sans les termes extraits
     def removeExtractedTerms(f: Formula) -> list:
@@ -604,19 +610,19 @@ def regrouperTermes(f: Formula, x: str) -> list:
                 return [f]
         else:
             return [f]
-    other_terms = removeExtractedTerms(body)
+    other_terms: list = removeExtractedTerms(body)
 
 
-    return [quantifiers,less_than_terms, greater_than_terms, equal_terms, other_terms]
+    return [quantifiers, less_than_terms, greater_than_terms, equal_terms, other_terms]
 
-def xeqw(f: Formula, x: str) -> list:
+def xeqw(f: Formula, x: str) -> list[list[Formula]]:
     """Remplace les occurrences de x par w dans une formule."""
-    list_terme = []
+    list_terme: list = []
     list_terme.append(f[0])  # On garde les quantificateurs
-    w = None
+    w: str | None = None
     
     # On récupère la valeur à laquelle x est égal
-    firsteq = f[3][0]
+    firsteq: Formula = f[3][0]
     while w is None:
         if firsteq.left == x and firsteq.right == x:
             w = None
@@ -629,14 +635,14 @@ def xeqw(f: Formula, x: str) -> list:
             w = firsteq.right if firsteq.left == x else firsteq.left
     
     # On remplace x par w dans les autres termes
-    new_lessthan_terms = []
+    new_lessthan_terms: list[Formula] = []
     for term in f[1]:
-        new_left = w if term.left == x else term.left
-        new_right = w if term.right == x else term.right
+        new_left: str = w if term.left == x else term.left
+        new_right: str = w if term.right == x else term.right
         new_lessthan_terms.append(ComparF(new_left, Lt(), new_right))
     list_terme.append(new_lessthan_terms)
 
-    new_greaterthan_terms = []
+    new_greaterthan_terms: list[Formula] = []
     for term in f[2]:
         new_left = w if term.left == x else term.left
         new_right = w if term.right == x else term.right
@@ -653,15 +659,15 @@ def xeqw(f: Formula, x: str) -> list:
 
     return list_terme
 
-def simplifierInegalites(less_than_terms: list, greater_than_terms: list) -> list:
+def simplifierInegalites(less_than_terms: list[Formula], greater_than_terms: list[Formula]) -> list[Formula]:
     """Simplifie les inégalités de la forme x<u1 et u2<x en u2<u1."""
-    new_terms = []
+    new_terms: list[Formula] = []
     for lt_term in less_than_terms:
         for gt_term in greater_than_terms:
             new_terms.append(ComparF(gt_term.left, Lt(), lt_term.right))
     return new_terms
 
-def searchXltX(formula):
+def searchXltX(formula) -> bool:
     """Renvoie True si la formule contient une comparaison de la forme (x < x)."""
     if isinstance(formula, BoolOpF):
         return searchXltX(formula.left) or searchXltX(formula.right)
@@ -676,13 +682,13 @@ def searchXltX(formula):
 
 #---Programme principal : Décision d'une formule---#
 
-def supDeVariables(formules: list, affichage: bool) -> list:
+def supDeVariables(formules: list[Formula], affichage: bool) -> list[Formula]:
     """Applique la fin de la procédure de décision pour supprimer la variable x sur une liste de fonction"""
     if not affichage:
         old_stdout = sys.stdout
         sys.stdout = open(os.devnull, 'w')  # stop affichage
 
-    return_formules = []
+    return_formules: list[Formula] = []
     for i, f in enumerate(formules, 1):
         body, quantifiers = extraireQuantificateurs(f)
         if (isinstance(body,NotF) and isinstance(body.sub,ConstF)):
@@ -742,9 +748,9 @@ def supDeVariables(formules: list, affichage: bool) -> list:
 
     return return_formules
         
-def enchainementSupDeVar(conjunctions: list):
+def enchainementSupDeVar(conjunctions: list[Formula]) -> list[Formula]:
     print("Voulez-vous procéder à la suppression d'une variable ?")
-    reponse = input("1 : oui / 2 : non : ")
+    reponse: str = input("1 : oui / 2 : non : ")
     while reponse not in ["1", "2"]:
         print("Choix invalide. Veuillez entrer 1 ou 2 :")
         reponse = input("")
@@ -752,7 +758,7 @@ def enchainementSupDeVar(conjunctions: list):
     while (reponse == "1"):
         print("\nSuppression d'une variable x dans chaque conjonction :")
         print("Voulez-vous avec détail le déroulé de cette suppression ?")
-        choice = input("1 : oui / 2 : non : ")
+        choice: str = input("1 : oui / 2 : non : ")
         while choice not in ["1", "2"]:
             print("Choix invalide. Veuillez entrer 1 ou 2 :")
             choice = input("")
@@ -774,42 +780,42 @@ def enchainementSupDeVar(conjunctions: list):
     
     return conjunctions
 
-def isFormuleValide(formules: list):
-    nb_formule = len(formules)
+def isFormuleValide(formules: list[Formula]) -> int:
+    nb_formule: int = len(formules)
     for f in formules:
         if isinstance(f,ConstF) and f.val == False:
             nb_formule -= 1
         if isinstance(f,ConstF) and f.val == True:
             return 1
-    return 2 if nb_formule == 0 else 1
+    return 2 if nb_formule == 0 else 0
 
 def decision(g: Formula) -> bool:
     """Procédure de décision d'une formule"""
 
     # ÉTAPE 0 : hypothèses vérifiées
-    f = toClose(g)  # S'assurer que la formule est close
+    f: Formula = toClose(g)  # S'assurer que la formule est close
     print("Formule automatiquement transformée en formule close avec ajout de quantificateurs universels si nécessaire.")
 
     if not isElimPossible(f):
         # Close, symboles relationnels seulement, et prénexe supposé
         raise ValueError("Formule non éligible à l'élimination des quantificateurs.")
 
-    f0 = allToExist(f) # Convertir forall en exists
+    f0: Formula = allToExist(f) # Convertir forall en exists
     print("Après conversion de tous les quantificateurs universels en existentiels :", f0)
 
     # ==========PRÉTRAITEMENT DE LA FORMULE========== #
     # Étape 1 : On elimine et tire les négations vers l'interieur
 
-    f1 = tirerNegation(f0)
+    f1: Formula = tirerNegation(f0)
     f1 = elimNegation(f1)
     print("\nAprès éliminations des négations à l'intérieur :", f1)
 
     # Étape 2 : Mettre en forme normale disjonctive
-    f2 = toDisjonctive(f1)
+    f2: Formula = toDisjonctive(f1)
     print("\nAprès mise en forme normale disjonctive :", f2)
 
     # Étape 3 : Tirer les quantificateurs devant les disjonctions
-    conjunctions = tirerQuantif(f2)
+    conjunctions: list[Formula] = tirerQuantif(f2)
 
     print("\nAprès tirage des quantificateurs devant les disjonctions :")
     affichageListeFormules(conjunctions)
@@ -820,8 +826,8 @@ def decision(g: Formula) -> bool:
     affichageListeFormules(conjunctions)
 
     # Étape 5 : Supprimer la variable x dans chaque conjonction
-    formule_after_sup = conjunctions
-    continuer = "1"
+    formule_after_sup: list[Formula] = conjunctions
+    continuer: str = "1"
     while continuer == "1":
         formule_after_sup = enchainementSupDeVar(formule_after_sup)
         
